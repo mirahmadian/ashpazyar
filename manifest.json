@@ -1,0 +1,16 @@
+{
+  "name": "محاسبه‌گر مواد اولیه غذا",
+  "short_name": "آشپزیار",
+  "description": "محاسبه مواد اولیه برای غذاهای مختلف بر اساس تعداد نفرات.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f3e8ff",
+  "theme_color": "#a855f7",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
