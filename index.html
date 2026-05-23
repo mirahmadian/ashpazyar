@@ -75,6 +75,14 @@ function selectFood(food) {
   document.getElementById("person-input").classList.remove("hidden");
   document.getElementById("result").classList.add("hidden");
   document.getElementById("persons").value = "";
+  
+  // Highlight selected button
+  document.querySelectorAll(".food-btn").forEach(btn => {
+    btn.classList.remove("ring-4", "ring-purple-400", "scale-105");
+    if (btn.textContent === food) {
+      btn.classList.add("ring-4", "ring-purple-400", "scale-105");
+    }
+  });
 }
 
 function formatAmount(amount, item) {
