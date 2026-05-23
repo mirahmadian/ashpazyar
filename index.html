@@ -76,6 +76,11 @@ function selectFood(food) {
   document.getElementById("result").classList.add("hidden");
   document.getElementById("persons").value = "";
   
+  // نمایش نام غذا در نتیجه
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = `<h2 class="text-xl font-bold text-purple-800 mb-4">نام غذا: ${food}</h2>`;
+  resultDiv.classList.remove("hidden");
+  
   // Highlight selected button
   document.querySelectorAll(".food-btn").forEach(btn => {
     btn.classList.remove("ring-4", "ring-purple-400", "scale-105");
