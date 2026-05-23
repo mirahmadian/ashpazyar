@@ -27,11 +27,11 @@
     <h1 class="text-3xl font-bold text-center text-purple-800 mb-6">🍳 محاسبه مواد اولیه غذاها</h1>
 
     <div id="food-selection" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-      <button onclick="selectFood('عدسی')" class="food-btn">عدسی</button>
-      <button onclick="selectFood('املت گوجه‌فرنگی')" class="food-btn">املت گوجه‌فرنگی</button>
-      <button onclick="selectFood('سالاد کلم')" class="food-btn">سالاد کلم</button>
-      <button onclick="selectFood('سالاد شیرازی')" class="food-btn">سالاد شیرازی</button>
-      <button onclick="selectFood('ماست و خیار')" class="food-btn">ماست و خیار</button>
+      <button onclick="selectFood('عدسی')" data-food="عدسی" class="food-btn">عدسی</button>
+      <button onclick="selectFood('املت گوجه‌فرنگی')" data-food="املت گوجه‌فرنگی" class="food-btn">املت گوجه‌فرنگی</button>
+      <button onclick="selectFood('سالاد کلم')" data-food="سالاد کلم" class="food-btn">سالاد کلم</button>
+      <button onclick="selectFood('سالاد شیرازی')" data-food="سالاد شیرازی" class="food-btn">سالاد شیرازی</button>
+      <button onclick="selectFood('ماست و خیار')" data-food="ماست و خیار" class="food-btn">ماست و خیار</button>
     </div>
 
     <div id="person-input" class="hidden mb-6">
@@ -75,6 +75,19 @@ function selectFood(food) {
   document.getElementById("person-input").classList.remove("hidden");
   document.getElementById("result").classList.add("hidden");
   document.getElementById("persons").value = "";
+  
+  // نمایش نام غذا در نتیجه
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = `<h2 class="text-xl font-bold text-purple-800 mb-4">نام غذا: ${food}</h2>`;
+  resultDiv.classList.remove("hidden");
+  
+  // Highlight selected button
+  document.querySelectorAll(".food-btn").forEach(btn => {
+    btn.classList.remove("ring-4", "ring-purple-400", "scale-105");
+    if (btn.getAttribute("data-food") === food) {
+      btn.classList.add("ring-4", "ring-purple-400", "scale-105");
+    }
+  });
 }
 
 function formatAmount(amount, item) {
