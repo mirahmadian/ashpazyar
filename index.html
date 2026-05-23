@@ -52,20 +52,49 @@
 <script>
 const foods = {
   "عدسی": {
-    "عدس": 40,
-    "رب گوجه فرنگی": 5,
-    "پیاز": 20,
-    "کره": 5,
-    "دارچین": 0.25,
-    "فلفل سیاه": 0.15,
-    "زردچوبه": 0.25,
-    "نمک": 5,
-    "جوپرک": 10
+    ingredients: {
+      "عدس": 40,
+      "رب گوجه فرنگی": 5,
+      "پیاز": 20,
+      "کره": 5,
+      "دارچین": 0.25,
+      "فلفل سیاه": 0.15,
+      "زردچوبه": 0.25,
+      "نمک": 5,
+      "جوپرک": 10
+    }
   },
-  "املت گوجه‌فرنگی": { "کره حیوانی": 10, "گوجه‌فرنگی": 120, "تخم مرغ (عدد)": 1.5, "روغن سرخ‌کردنی": 10 },
-  "سالاد کلم": { "کشمش یا گردو": 10, "کلم بنفش": 10, "کلم سفید": 40, "ذرت شیرین": 15, "هویج": 25 },
-  "سالاد شیرازی": { "خیار": 60, "گوجه‌فرنگی": 50, "پیاز": 40 },
-  "ماست و خیار": { "خیار": 40, "ماست": 110, "نعناع خشک": "به مقدار لازم" }
+  "املت گوجه‌فرنگی": { 
+    ingredients: { 
+      "کره حیوانی": 10, 
+      "گوجه‌فرنگی": 120, 
+      "تخم مرغ (عدد)": 1.5, 
+      "روغن سرخ‌کردنی": 10 
+    }
+  },
+  "سالاد کلم": { 
+    ingredients: { 
+      "کشمش یا گردو": 10, 
+      "کلم بنفش": 10, 
+      "کلم سفید": 40, 
+      "ذرت شیرین": 15, 
+      "هویج": 25 
+    }
+  },
+  "سالاد شیرازی": { 
+    ingredients: { 
+      "خیار": 60, 
+      "گوجه‌فرنگی": 50, 
+      "پیاز": 40 
+    }
+  },
+  "ماست و خیار": { 
+    ingredients: { 
+      "خیار": 40, 
+      "ماست": 110, 
+      "نعناع خشک": "به مقدار لازم" 
+    }
+  }
 };
 
 let selectedFood = "";
@@ -92,9 +121,12 @@ function formatAmount(amount, item) {
 function calculate() {
   const persons = parseInt(document.getElementById("persons").value);
   if (!persons || persons < 1) { alert("لطفا تعداد نفرات معتبر وارد کنید"); return; }
-  const ingredients = foods[selectedFood];
+  const foodData = foods[selectedFood];
+  const ingredients = foodData.ingredients;
   const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = `<h2 class="text-xl font-bold text-purple-800 mb-4">مواد لازم برای ${persons} نفر ${selectedFood}:</h2>`;
+  resultDiv.innerHTML = `
+    <h2 class="text-xl font-bold text-purple-800 mb-4">مواد لازم برای ${persons} نفر ${selectedFood}:</h2>
+  `;
   for (let item in ingredients) {
     let base = ingredients[item];
     let amount = typeof base === "number" ? (base * persons) : base;
