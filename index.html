@@ -52,20 +52,54 @@
 <script>
 const foods = {
   "عدسی": {
-    "عدس": 40,
-    "رب گوجه فرنگی": 5,
-    "پیاز": 20,
-    "کره": 5,
-    "دارچین": 0.25,
-    "فلفل سیاه": 0.15,
-    "زردچوبه": 0.25,
-    "نمک": 5,
-    "جوپرک": 10
+    image: 'https://images.pexels.com/photos/101533/pexels-photo-101533.jpeg?auto=compress&cs=tinysrgb&w=400',
+    ingredients: {
+      "عدس": 40,
+      "رب گوجه فرنگی": 5,
+      "پیاز": 20,
+      "کره": 5,
+      "دارچین": 0.25,
+      "فلفل سیاه": 0.15,
+      "زردچوبه": 0.25,
+      "نمک": 5,
+      "جوپرک": 10
+    }
   },
-  "املت گوجه‌فرنگی": { "کره حیوانی": 10, "گوجه‌فرنگی": 120, "تخم مرغ (عدد)": 1.5, "روغن سرخ‌کردنی": 10 },
-  "سالاد کلم": { "کشمش یا گردو": 10, "کلم بنفش": 10, "کلم سفید": 40, "ذرت شیرین": 15, "هویج": 25 },
-  "سالاد شیرازی": { "خیار": 60, "گوجه‌فرنگی": 50, "پیاز": 40 },
-  "ماست و خیار": { "خیار": 40, "ماست": 110, "نعناع خشک": "به مقدار لازم" }
+  "املت گوجه‌فرنگی": { 
+    image: 'https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg?auto=compress&cs=tinysrgb&w=400',
+    ingredients: { 
+      "کره حیوانی": 10, 
+      "گوجه‌فرنگی": 120, 
+      "تخم مرغ (عدد)": 1.5, 
+      "روغن سرخ‌کردنی": 10 
+    }
+  },
+  "سالاد کلم": { 
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&auto=format&fit=crop',
+    ingredients: { 
+      "کشمش یا گردو": 10, 
+      "کلم بنفش": 10, 
+      "کلم سفید": 40, 
+      "ذرت شیرین": 15, 
+      "هویج": 25 
+    }
+  },
+  "سالاد شیرازی": { 
+    image: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=400',
+    ingredients: { 
+      "خیار": 60, 
+      "گوجه‌فرنگی": 50, 
+      "پیاز": 40 
+    }
+  },
+  "ماست و خیار": { 
+    image: 'https://images.pexels.com/photos/7625056/pexels-photo-7625056.jpeg?auto=compress&cs=tinysrgb&w=400',
+    ingredients: { 
+      "خیار": 40, 
+      "ماست": 110, 
+      "نعناع خشک": "به مقدار لازم" 
+    }
+  }
 };
 
 let selectedFood = "";
@@ -92,9 +126,15 @@ function formatAmount(amount, item) {
 function calculate() {
   const persons = parseInt(document.getElementById("persons").value);
   if (!persons || persons < 1) { alert("لطفا تعداد نفرات معتبر وارد کنید"); return; }
-  const ingredients = foods[selectedFood];
+  const foodData = foods[selectedFood];
+  const ingredients = foodData.ingredients;
   const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = `<h2 class="text-xl font-bold text-purple-800 mb-4">مواد لازم برای ${persons} نفر ${selectedFood}:</h2>`;
+  resultDiv.innerHTML = `
+    <div class="mb-4 rounded-xl overflow-hidden shadow-lg">
+      <img src="${foodData.image}" alt="${selectedFood}" class="w-full h-48 object-cover">
+    </div>
+    <h2 class="text-xl font-bold text-purple-800 mb-4">مواد لازم برای ${persons} نفر ${selectedFood}:</h2>
+  `;
   for (let item in ingredients) {
     let base = ingredients[item];
     let amount = typeof base === "number" ? (base * persons) : base;
