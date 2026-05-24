@@ -35,6 +35,7 @@
     </div>
 
     <div id="person-input" class="hidden mb-6">
+      <h2 id="food-name" class="text-2xl font-bold text-purple-800 mb-4">نام غذا: </h2>
       <label class="block mb-2 text-lg font-semibold text-gray-700">تعداد نفرات:</label>
       <input id="persons" type="number" min="1" class="w-full border rounded-lg p-3 text-lg focus:ring-2 focus:ring-purple-400 focus:outline-none">
       <button onclick="calculate()" class="mt-4 w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white p-3 rounded-lg hover:scale-105 transition">محاسبه کن ✅</button>
@@ -74,6 +75,7 @@ function selectFood(food) {
   selectedFood = food;
   document.getElementById("person-input").classList.remove("hidden");
   document.getElementById("result").classList.add("hidden");
+  document.getElementById("food-name").textContent = "نام غذا: " + food;
   document.getElementById("persons").value = "";
 }
 
