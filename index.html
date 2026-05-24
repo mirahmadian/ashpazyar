@@ -27,18 +27,37 @@
     <h1 class="text-3xl font-bold text-center text-purple-800 mb-6">🍳 محاسبه مواد اولیه غذاها</h1>
 
     <div id="food-selection" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-      <button onclick="selectFood('عدسی')" class="food-btn">عدسی</button>
-      <button onclick="selectFood('املت گوجه‌فرنگی')" class="food-btn">املت گوجه‌فرنگی</button>
-      <button onclick="selectFood('سالاد کلم')" class="food-btn">سالاد کلم</button>
-      <button onclick="selectFood('سالاد شیرازی')" class="food-btn">سالاد شیرازی</button>
-      <button onclick="selectFood('ماست و خیار')" class="food-btn">ماست و خیار</button>
+      <button onclick="selectFood('عدسی', '🍲')" class="food-btn flex flex-col items-center justify-center p-4">
+        <span class="text-4xl mb-2">🍲</span>
+        <span>عدسی</span>
+      </button>
+      <button onclick="selectFood('املت گوجه‌فرنگی', '🍳')" class="food-btn flex flex-col items-center justify-center p-4">
+        <span class="text-4xl mb-2">🍳</span>
+        <span>املت گوجه‌فرنگی</span>
+      </button>
+      <button onclick="selectFood('سالاد کلم', '🥗')" class="food-btn flex flex-col items-center justify-center p-4">
+        <span class="text-4xl mb-2">🥗</span>
+        <span>سالاد کلم</span>
+      </button>
+      <button onclick="selectFood('سالاد شیرازی', '🥒')" class="food-btn flex flex-col items-center justify-center p-4">
+        <span class="text-4xl mb-2">🥒</span>
+        <span>سالاد شیرازی</span>
+      </button>
+      <button onclick="selectFood('ماست و خیار', '🥛')" class="food-btn flex flex-col items-center justify-center p-4">
+        <span class="text-4xl mb-2">🥛</span>
+        <span>ماست و خیار</span>
+      </button>
     </div>
 
-    <div id="person-input" class="hidden mb-6">
-      <h2 id="food-name" class="text-2xl font-bold text-purple-800 mb-4">نام غذا: </h2>
-      <label class="block mb-2 text-lg font-semibold text-gray-700">تعداد نفرات:</label>
-      <input id="persons" type="number" min="1" class="w-full border rounded-lg p-3 text-lg focus:ring-2 focus:ring-purple-400 focus:outline-none">
-      <button onclick="calculate()" class="mt-4 w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white p-3 rounded-lg hover:scale-105 transition">محاسبه کن ✅</button>
+    <div id="person-input" class="hidden mb-6 bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-2xl border-2 border-purple-200">
+      <div class="flex items-center gap-4 mb-4">
+        <span id="food-emoji" class="text-5xl">🍲</span>
+        <h2 id="food-name" class="text-3xl font-bold text-purple-800">عدسی</h2>
+      </div>
+      <div class="border-b-2 border-purple-200 my-4"></div>
+      <label class="block mb-3 text-lg font-semibold text-gray-700">🧑‍🍳 تعداد نفرات:</label>
+      <input id="persons" type="number" min="1" class="w-full border-2 border-purple-300 rounded-lg p-3 text-lg focus:ring-2 focus:ring-purple-400 focus:outline-none focus:border-transparent">
+      <button onclick="calculate()" class="mt-4 w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white p-3 rounded-lg hover:scale-105 transition font-bold text-lg">محاسبه کن ✅</button>
     </div>
 
     <div id="result" class="hidden mt-6 space-y-4"></div>
@@ -70,13 +89,16 @@ const foods = {
 };
 
 let selectedFood = "";
+let selectedEmoji = "";
 
-function selectFood(food) {
+function selectFood(food, emoji) {
   selectedFood = food;
+  selectedEmoji = emoji;
   document.getElementById("person-input").classList.remove("hidden");
   document.getElementById("result").classList.add("hidden");
-  document.getElementById("food-name").textContent = "نام غذا: " + food;
   document.getElementById("persons").value = "";
+  document.getElementById("food-name").textContent = food;
+  document.getElementById("food-emoji").textContent = emoji;
 }
 
 function formatAmount(amount, item) {
@@ -96,12 +118,18 @@ function calculate() {
   if (!persons || persons < 1) { alert("لطفا تعداد نفرات معتبر وارد کنید"); return; }
   const ingredients = foods[selectedFood];
   const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = `<h2 class="text-xl font-bold text-purple-800 mb-4">مواد لازم برای ${persons} نفر ${selectedFood}:</h2>`;
+  resultDiv.innerHTML = `<div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-2 border-green-300 mb-4">
+    <h2 class="text-2xl font-bold text-green-800 mb-2 flex items-center gap-2">
+      <span>${selectedEmoji}</span>
+      <span>مواد لازم برای ${persons} نفر</span>
+    </h2>
+    <p class="text-green-700 font-semibold">${selectedFood}</p>
+  </div>`;
   for (let item in ingredients) {
     let base = ingredients[item];
     let amount = typeof base === "number" ? (base * persons) : base;
     let display = formatAmount(amount, item);
-    resultDiv.innerHTML += `<div class="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-xl shadow"><span class="font-semibold text-gray-800">${item}:</span> <span class="text-purple-700">${display}</span></div>`;
+    resultDiv.innerHTML += `<div class="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-xl shadow-md hover:shadow-lg transition border-l-4 border-purple-500"><span class="font-semibold text-gray-800">📦 ${item}:</span> <span class="text-purple-700 font-bold">${display}</span></div>`;
   }
   resultDiv.classList.remove("hidden");
 }
