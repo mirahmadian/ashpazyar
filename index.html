@@ -71,7 +71,7 @@
             backdrop-filter: blur(2px);
             border-radius: 3rem;
             box-shadow: var(--shadow);
-            padding: 1.8rem 1.2rem 2.5rem 1.2rem;
+            padding: 1.8rem 1.2rem 1.5rem 1.2rem;
         }
 
         .main-title {
@@ -209,26 +209,26 @@
             border-radius: 20px;
         }
 
-        .footer-note {
-            margin-top: 2rem;
+        /* ========== فوتر جدید با متن سفارشی ========== */
+        .custom-footer {
             text-align: center;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
+            margin-top: 2rem;
+            padding-top: 1.2rem;
             border-top: 1px dashed var(--border-color);
-            padding-top: 1.5rem;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            font-size: 0.9rem;
         }
-        .price-tag {
-            background: var(--price-tag-bg);
-            border-radius: 60px;
-            padding: 0.3rem 1rem;
+        .custom-footer p:first-child {
+            font-weight: 600;
+            color: var(--icon-color);
+            margin-bottom: 0.5rem;
+        }
+        .custom-footer p:last-child {
             font-weight: 500;
+            color: var(--text-secondary);
+            direction: rtl;
         }
 
-        /* ========== مودال زیبا ========== */
+        /* ========== مودال ========== */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -259,9 +259,7 @@
             transform: scale(0.9);
             transition: transform 0.3s ease;
             border: 1px solid var(--border-color);
-        }
-        .modal-overlay.active .modal-container {
-            transform: scale(1);
+            font-family: 'Vazirmatn', sans-serif;
         }
         .modal-header {
             display: flex;
@@ -274,6 +272,7 @@
         .modal-header h2 {
             font-size: 1.8rem;
             color: var(--icon-color);
+            font-family: 'Vazirmatn', sans-serif;
         }
         .modal-close {
             background: none;
@@ -281,6 +280,11 @@
             font-size: 1.8rem;
             cursor: pointer;
             color: var(--text-secondary);
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        .modal-body label {
+            font-family: 'Vazirmatn', sans-serif;
+            font-weight: 500;
         }
         .modal-body input {
             width: 100%;
@@ -291,6 +295,7 @@
             color: var(--text-primary);
             font-size: 1rem;
             margin: 10px 0;
+            font-family: 'Vazirmatn', sans-serif;
         }
         .calc-btn {
             background: linear-gradient(135deg, #e67e22, #f39c12);
@@ -303,6 +308,7 @@
             width: 100%;
             margin-top: 10px;
             font-size: 1rem;
+            font-family: 'Vazirmatn', sans-serif;
         }
         .result-box {
             margin-top: 20px;
@@ -311,119 +317,53 @@
             padding: 1rem;
             max-height: 300px;
             overflow-y: auto;
+            font-family: 'Vazirmatn', sans-serif;
         }
         .result-item {
             padding: 8px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
+            font-family: 'Vazirmatn', sans-serif;
         }
 
-        /* ========== استایل پرینت ========== */
         @media print {
-            /* تنظیم صفحه به صورت افقی */
             @page {
                 size: landscape;
                 margin: 0.5cm;
             }
-
-            /* حذف تمام المان‌های اضافی */
             .action-bar,
-            .footer-note,
+            .custom-footer,
             .reset-day,
             .action-btn,
-            #darkModeToggle,
-            #printBtn,
-            #resetAllChecklist,
             .modal-overlay {
                 display: none !important;
             }
-
-            /* حذف چک‌باکس‌ها */
             .checklist-item input {
                 display: none !important;
             }
-
-            /* حذف آیکون‌های غذاهای قابل کلیک */
             .clickable-food i {
                 display: none !important;
             }
-
-            /* حذف افکت‌ها و پس‌زمینه‌های اضافی */
             body, body.dark {
                 background: white !important;
                 padding: 0 !important;
                 margin: 0 !important;
             }
-
             .container {
                 background: white !important;
                 box-shadow: none !important;
                 padding: 0 !important;
-                border-radius: 0 !important;
-                max-width: 100% !important;
             }
-
-            .main-title h1 {
-                color: #2c6e2c !important;
-                font-size: 1.3rem !important;
-                padding: 0 !important;
-                margin-bottom: 0.5rem !important;
-            }
-
-            .table-wrapper {
-                background: white !important;
-                box-shadow: none !important;
-                border-radius: 0 !important;
-                overflow-x: visible !important;
-            }
-
             .meal-table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                min-width: auto !important;
                 font-size: 0.7rem !important;
             }
-
-            .meal-table th,
-            .meal-table td {
+            .meal-table th, .meal-table td {
                 border: 1px solid #999 !important;
                 padding: 0.4rem 0.3rem !important;
-                background: white !important;
-                color: black !important;
             }
-
-            .meal-table th {
-                background: #f0f0f0 !important;
-                color: black !important;
-                font-weight: 800 !important;
-            }
-
-            .day-cell {
-                background: #f5f5dc !important;
-                color: #2d5016 !important;
-            }
-
-            .checklist-item {
-                display: block !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-
-            .checked-text {
-                text-decoration: none !important;
-                opacity: 1 !important;
-            }
-
-            .clickable-food {
-                background: none !important;
-                padding: 0 !important;
-                cursor: default !important;
-            }
-
             .meal-table tr {
                 page-break-inside: avoid;
-                break-inside: avoid;
             }
         }
 
@@ -436,7 +376,7 @@
 <body>
 <div class="container">
     <div class="main-title">
-        <h1>📋 جدول برنامه غذایی کاروان‌های ارزان قیمت</h1>
+        <h1>ߓ렘옯ول برنامه غذایی کاروان‌های ارزان قیمت</h1>
     </div>
 
     <div class="action-bar">
@@ -454,10 +394,10 @@
         </table>
     </div>
 
-    <div class="footer-note">
-        <div class="price-tag"><i class="fas fa-mouse-pointer"></i> روی غذاهای قابل کلیک بزنید!</div>
-        <div class="price-tag"><i class="fas fa-calculator"></i> محاسبه مواد اولیه برای هر تعداد نفر</div>
-        <div class="price-tag"><i class="fas fa-print"></i> پرینت به صورت افقی</div>
+    <!-- فوتر جدید با متن سفارشی -->
+    <div class="custom-footer">
+        <p>✍️ این برنامه توسط محمد میراحمدیان تهیه شده</p>
+        <p>ߙ왇ت استفاده از این برنامه شادی روح شهداء و امام شهیدان صلوات</p>
     </div>
 </div>
 
@@ -469,16 +409,16 @@
             <button class="modal-close" id="modalCloseBtn">&times;</button>
         </div>
         <div class="modal-body">
-            <label>🧑‍🍳 تعداد نفرات:</label>
+            <label>ߧᢀ��تعداد نفرات:</label>
             <input type="number" id="modalPersons" min="1" placeholder="مثلاً 50">
-            <button class="calc-btn" id="modalCalcBtn">🍳 محاسبه مواد اولیه</button>
+            <button class="calc-btn" id="modalCalcBtn">ߍ㠙嘭اسبه مواد اولیه</button>
             <div id="modalResult" class="result-box"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // ========== داده‌های مواد اولیه ==========
+    // داده‌های مواد اولیه
     const ingredientsData = {
         "عدسی": { "عدس": 40, "رب گوجه فرنگی": 5, "پیاز": 20, "کره": 5, "دارچین": 0.25, "فلفل سیاه": 0.15, "زردچوبه": 0.25, "نمک": 5, "جوپرک": 10 },
         "املت گوجه‌فرنگی": { "کره حیوانی": 10, "گوجه‌فرنگی": 120, "تخم مرغ (عدد)": 1.5, "روغن سرخ‌کردنی": 10 },
@@ -579,31 +519,31 @@
     function openModal(food) {
         modalFoodName.innerText = food;
         modalPersons.value = '';
-        modalResult.innerHTML = '<div style="text-align:center; color:gray;">📊 با وارد کردن تعداد نفرات، مواد را محاسبه کنید</div>';
+        modalResult.innerHTML = '<div style="text-align:center; color:gray; font-family: Vazirmatn;">ߓꠘ蘧 وارد کردن تعداد نفرات، مواد را محاسبه کنید</div>';
         modal.classList.add('active');
         document.getElementById('modalCalcBtn').onclick = () => {
             let persons = parseInt(modalPersons.value);
             if(isNaN(persons) || persons < 1) {
-                modalResult.innerHTML = '<div style="color:red;">❌ تعداد نفرات معتبر وارد کنید</div>';
+                modalResult.innerHTML = '<div style="color:red; font-family: Vazirmatn;">❌ تعداد نفرات معتبر وارد کنید</div>';
                 return;
             }
             const ingredients = ingredientsData[food];
-            let html = `<div style="font-weight:bold; margin-bottom:10px;">🍲 مواد لازم برای ${persons} نفر (${food}):</div>`;
+            let html = `<div style="font-weight:bold; margin-bottom:10px;">ߍ⠙噈اد لازم برای ${persons} نفر (${food}):</div>`;
             for(let [item, base] of Object.entries(ingredients)) {
                 if(typeof base === 'number') {
                     let total = base * persons;
                     if(item.includes('تخم مرغ')) {
-                        html += `<div class="result-item"><span>🥚 ${item}</span><span>${Math.ceil(total)} عدد</span></div>`;
+                        html += `<div class="result-item"><span>ߥꠤ{item}</span><span>${Math.ceil(total)} عدد</span></div>`;
                     } else if(item.includes('کره حیوانی') || item === 'کره') {
                         let butterCount = Math.ceil(total / 10);
-                        html += `<div class="result-item"><span>🧈 ${item}</span><span>${total} گرم (${butterCount} عدد کره ۱۰ گرمی)</span></div>`;
+                        html += `<div class="result-item"><span>ߧ蠤{item}</span><span>${total} گرم (${butterCount} عدد کره ۱۰ گرمی)</span></div>`;
                     } else if(total >= 1000) {
-                        html += `<div class="result-item"><span>📦 ${item}</span><span>${total} گرم (${Math.round(total/1000)} کیلوگرم)</span></div>`;
+                        html += `<div class="result-item"><span>ߓ栤{item}</span><span>${total} گرم (${Math.round(total/1000)} کیلوگرم)</span></div>`;
                     } else {
-                        html += `<div class="result-item"><span>📦 ${item}</span><span>${total} گرم</span></div>`;
+                        html += `<div class="result-item"><span>ߓ栤{item}</span><span>${total} گرم</span></div>`;
                     }
                 } else {
-                    html += `<div class="result-item"><span>🌿 ${item}</span><span>${base}</span></div>`;
+                    html += `<div class="result-item"><span>ߌ{item}</span><span>${base}</span></div>`;
                 }
             }
             modalResult.innerHTML = html;
