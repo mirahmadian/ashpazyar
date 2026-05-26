@@ -238,7 +238,7 @@
             direction: rtl;
         }
 
-        /* مودال عمومی */
+        /* ========== مودال بهینه شده ========== */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -263,14 +263,15 @@
             background: var(--modal-bg);
             border-radius: 2rem;
             width: 90%;
-            max-width: 550px;
-            padding: 2rem;
+            max-width: 650px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.3);
             transform: scale(0.9);
             transition: transform 0.3s ease;
             border: 1px solid var(--border-color);
-            max-height: 80vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+            overflow: hidden;
         }
         .modal-overlay.active .modal-container {
             transform: scale(1);
@@ -279,9 +280,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            padding: 1.5rem 2rem 0.8rem 2rem;
             border-bottom: 2px solid var(--icon-color);
-            padding-bottom: 0.8rem;
+            flex-shrink: 0;
         }
         .modal-header h2 {
             font-size: 1.6rem;
@@ -294,11 +295,15 @@
             cursor: pointer;
             color: var(--text-secondary);
         }
+        .modal-body {
+            padding: 1.5rem 2rem 2rem 2rem;
+            overflow-y: auto;
+            flex: 1;
+        }
         .modal-body label {
             font-weight: 500;
-        }
-        .modal-body input, .modal-body button {
-            font-family: 'Vazirmatn', sans-serif;
+            display: block;
+            margin-bottom: 5px;
         }
         .modal-body input {
             width: 100%;
@@ -308,7 +313,7 @@
             background: var(--table-bg);
             color: var(--text-primary);
             font-size: 1rem;
-            margin: 10px 0;
+            margin-bottom: 15px;
         }
         .calc-btn {
             background: linear-gradient(135deg, #e67e22, #f39c12);
@@ -319,24 +324,30 @@
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            margin-top: 10px;
+            margin: 5px 0 15px 0;
             font-size: 1rem;
         }
-        .result-box {
-            margin-top: 20px;
+        .report-list {
             background: var(--row-hover);
             border-radius: 1rem;
             padding: 1rem;
-            max-height: 300px;
-            overflow-y: auto;
         }
-        .result-item {
-            padding: 8px;
+        .report-item {
+            padding: 10px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 8px;
+        }
+        .report-item:last-child {
+            border-bottom: none;
+        }
+        .info-note {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: center;
         }
         .waste-item {
             display: flex;
@@ -348,18 +359,6 @@
         .waste-item input {
             width: 100px;
             margin: 0;
-        }
-        .badge {
-            background: #e67e22;
-            color: white;
-            border-radius: 20px;
-            padding: 2px 8px;
-            font-size: 0.7rem;
-        }
-        .info-note {
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
         }
 
         @media print {
@@ -378,6 +377,8 @@
             body { padding: 1rem; }
             .main-title h1 { font-size: 1.3rem; }
             .action-btn { font-size: 0.7rem; padding: 0.4rem 0.8rem; }
+            .modal-header h2 { font-size: 1.2rem; }
+            .modal-body { padding: 1rem; }
         }
     </style>
 </head>
@@ -416,12 +417,12 @@
             <label>تعداد نفرات:</label>
             <input type="number" id="modalPersons" min="1" placeholder="مثلا 50">
             <button class="calc-btn" id="modalCalcBtn">محاسبه مواد اولیه</button>
-            <div id="modalResult" class="result-box"></div>
+            <div id="modalResult" class="report-list"></div>
         </div>
     </div>
 </div>
 
-<!-- مودال گزارش خرید هفتگی -->
+<!-- مودال گزارش خرید هفتگی (بدون اسکرول تو در تو) -->
 <div id="reportModal" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header"><h2><i class="fas fa-clipboard-list"></i> گزارش خرید هفتگی</h2><button class="modal-close" id="reportModalClose">&times;</button></div>
@@ -429,7 +430,7 @@
             <label>تعداد نفرات کاروان:</label>
             <input type="number" id="reportPersons" min="1" placeholder="مثلا 50" value="50">
             <button class="calc-btn" id="generateReportBtn">📊 محاسبه و نمایش گزارش</button>
-            <div id="reportResult" class="result-box"></div>
+            <div id="reportResult" class="report-list"></div>
             <div class="info-note">
                 <i class="fas fa-info-circle"></i> این گزارش فقط مواد مورد نیاز برای صبحانه‌های گرم (عدسی، املت) و دورچین‌های سرد (سالادها و ماست و خیار) را نشان می‌دهد.
             </div>
@@ -454,14 +455,13 @@
 <script>
     // مواد اولیه و تعدد دفعات در هفته
     const weeklyFoodsCount = {
-        "عدسی": 0,            // در برنامه فعلی عدسی در صبحانه نیست
-        "املت گوجه فرنگی": 0, // در برنامه اصلی املت نداریم
-        "سالاد کلم": 5,       // تقریبا هر روز در دورچین شام هست
-        "سالاد شیرازی": 1,    // روز پنجم در دورچین ناهار
-        "ماست و خیار": 2      // روز اول و سوم در دورچین ناهار
+        "عدسی": 0,
+        "املت گوجه فرنگی": 0,
+        "سالاد کلم": 5,
+        "سالاد شیرازی": 1,
+        "ماست و خیار": 2
     };
 
-    // نقشه مواد اولیه
     const ingredientsData = {
         "عدسی": { "عدس": 40, "رب گوجه فرنگی": 5, "پیاز": 20, "کره": 5, "دارچین": 0.25, "فلفل سیاه": 0.15, "زردچوبه": 0.25, "نمک": 5, "جوپرک": 10 },
         "املت گوجه فرنگی": { "کره حیوانی": 10, "گوجه فرنگی": 120, "تخم مرغ (عدد)": 1.5, "روغن سرخ کردنی": 10 },
@@ -472,7 +472,6 @@
 
     const clickableFoods = ["عدسی", "املت گوجه فرنگی", "سالاد کلم", "سالاد شیرازی", "ماست و خیار"];
 
-    // داده‌های جدول
     const mealsData = [
         { day: "اول", breakfast: "پنیر ۳۰ گرمی + تخم مرغ + کره + عسل + مربا + چای + شکر", lunch: "باقلاپلو با گوشت", sideLunch: "ماست و خیار + نوشابه + پرتقال + نصف نان", dinner: "خوراک کوبیده مرغ", sideDinner: "نصف لیموترش + پیاز + نوشابه + نارنگی + سالاد کلم + نصف نان" },
         { day: "دوم", breakfast: "پنیر ۳۰ گرمی + خیار و گوجه + کره + عسل + حلوا شکری + چای + شکر", lunch: "چلوخورشت قورمه سبزی", sideLunch: "پیاز + ماست + نوشابه + پرتقال + نصف نان", dinner: "خوراک جوجه کباب", sideDinner: "نصف لیموترش + دوغ + موز + زیتون + سالاد کلم + نصف نان" },
@@ -482,11 +481,9 @@
         { day: "ششم", breakfast: "پنیر ۳۰ گرمی + خیار و گوجه + کره + عسل + حلوا شکری + چای + شکر", lunch: "چلوخورشت قورمه سبزی", sideLunch: "پیاز + ماست + نوشابه + پرتقال + نصف نان", dinner: "خوراک جوجه کباب", sideDinner: "نصف لیموترش + دوغ + موز + زیتون + سالاد کلم + نصف نان" }
     ];
 
-    // بارگذاری مازادها از localStorage
     let wasteStock = JSON.parse(localStorage.getItem('wasteStock_v1') || '{}');
     function saveWasteStock() { localStorage.setItem('wasteStock_v1', JSON.stringify(wasteStock)); }
 
-    // محاسبه مقدار کل هفتگی برای یک غذا
     function getWeeklyTotal(foodName, persons) {
         let count = weeklyFoodsCount[foodName] || 0;
         if(count === 0) return null;
@@ -504,7 +501,6 @@
         return result;
     }
 
-    // محاسبه کل هفتگی همه مواد
     function getAllWeeklyTotal(persons) {
         let allTotals = {};
         for(let food of Object.keys(weeklyFoodsCount)) {
@@ -520,31 +516,6 @@
         return allTotals;
     }
 
-    // نمایش گزارش با احتساب مازاد
-    function showWeeklyReport(persons) {
-        let totals = getAllWeeklyTotal(persons);
-        let html = `<div style="font-weight:bold; margin-bottom:10px;">📦 مواد اولیه مورد نیاز برای ${persons} نفر در کل هفته:</div>`;
-        
-        for(let [item, amount] of Object.entries(totals)) {
-            let wasteAmount = wasteStock[item] || 0;
-            let suggested = Math.max(0, amount - wasteAmount);
-            let displayAmount = formatAmountForDisplay(amount, item);
-            let displaySuggested = formatAmountForDisplay(suggested, item);
-            
-            html += `<div class="result-item">`;
-            html += `<span><strong>${item}</strong></span>`;
-            html += `<span>نیاز: ${displayAmount}</span>`;
-            if(wasteAmount > 0) {
-                html += `<span style="color:red; font-size:0.75rem;">مازاد موجود: ${formatAmountForDisplay(wasteAmount, item)}</span>`;
-                html += `<span style="color:green; font-weight:bold;">پیشنهادی: ${displaySuggested}</span>`;
-            } else {
-                html += `<span style="color:green;">پیشنهادی: ${displayAmount}</span>`;
-            }
-            html += `</div>`;
-        }
-        return html;
-    }
-
     function formatAmountForDisplay(amount, item) {
         if(item.includes('تخم مرغ')) return Math.ceil(amount) + ' عدد';
         if(item.includes('کره حیوانی') || item === 'کره') {
@@ -555,7 +526,30 @@
         return amount + ' گرم';
     }
 
-    // توابع عمومی جدول و چک‌لیست
+    function showWeeklyReport(persons) {
+        let totals = getAllWeeklyTotal(persons);
+        let html = `<div style="font-weight:bold; margin-bottom:15px; text-align:center;">📦 مواد اولیه مورد نیاز برای ${persons} نفر در کل هفته:</div>`;
+        
+        for(let [item, amount] of Object.entries(totals)) {
+            let wasteAmount = wasteStock[item] || 0;
+            let suggested = Math.max(0, amount - wasteAmount);
+            let displayAmount = formatAmountForDisplay(amount, item);
+            let displaySuggested = formatAmountForDisplay(suggested, item);
+            
+            html += `<div class="report-item">`;
+            html += `<span><strong>${item}</strong></span>`;
+            html += `<span>نیاز: ${displayAmount}</span>`;
+            if(wasteAmount > 0) {
+                html += `<span style="color:red; font-size:0.75rem;">مازاد: ${formatAmountForDisplay(wasteAmount, item)}</span>`;
+                html += `<span style="color:green; font-weight:bold;">پیشنهادی: ${displaySuggested}</span>`;
+            } else {
+                html += `<span style="color:green;">پیشنهادی: ${displayAmount}</span>`;
+            }
+            html += `</div>`;
+        }
+        return html;
+    }
+
     function wrapClickableItems(text) {
         let items = text.split(' + ');
         let wrapped = items.map(item => {
@@ -630,7 +624,6 @@
         }
     }
 
-    // مودال مواد
     const modal = document.getElementById('modalOverlay');
     const modalFoodName = document.getElementById('modalFoodName');
     const modalPersons = document.getElementById('modalPersons');
@@ -652,9 +645,9 @@
             for(let [item, base] of Object.entries(ingredients)) {
                 if(typeof base === 'number') {
                     let total = base * persons;
-                    html += `<div class="result-item"><span>${item}</span><span>${formatAmountForDisplay(total, item)}</span></div>`;
+                    html += `<div class="report-item"><span>${item}</span><span>${formatAmountForDisplay(total, item)}</span></div>`;
                 } else {
-                    html += `<div class="result-item"><span>${item}</span><span>${base}</span></div>`;
+                    html += `<div class="report-item"><span>${item}</span><span>${base}</span></div>`;
                 }
             }
             modalResult.innerHTML = html;
@@ -746,7 +739,6 @@
     
     wasteModalClose.onclick = () => wasteModal.classList.remove('active');
     
-    // رویدادهای عمومی
     function resetDayChecklist(rowIndex) {
         ['breakfast','lunch','sideLunch','dinner','sideDinner'].forEach(meal => {
             delete checklistState[`row_${rowIndex}_${meal}`];
