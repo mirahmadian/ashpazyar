@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>برنامه غذایی کاروان‌های ارزان قیمت + محاسبه‌گر هوشمند</title>
+    <title>برنامه غذایی کاروان‌های ارزان قیمت</title>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -209,7 +209,6 @@
             border-radius: 20px;
         }
 
-        /* ========== فوتر جدید با متن سفارشی ========== */
         .custom-footer {
             text-align: center;
             margin-top: 2rem;
@@ -228,7 +227,6 @@
             direction: rtl;
         }
 
-        /* ========== مودال ========== */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -260,6 +258,9 @@
             transition: transform 0.3s ease;
             border: 1px solid var(--border-color);
             font-family: 'Vazirmatn', sans-serif;
+        }
+        .modal-overlay.active .modal-container {
+            transform: scale(1);
         }
         .modal-header {
             display: flex;
@@ -376,13 +377,13 @@
 <body>
 <div class="container">
     <div class="main-title">
-        <h1>ߓ렘옯ول برنامه غذایی کاروان‌های ارزان قیمت</h1>
+        <h1>📋 جدول برنامه غذایی کاروان های ارزان قیمت</h1>
     </div>
 
     <div class="action-bar">
         <button class="action-btn" id="darkModeToggle"><i class="fas fa-moon"></i> حالت شب</button>
         <button class="action-btn" id="printBtn"><i class="fas fa-print"></i> پرینت / PDF</button>
-        <button class="action-btn" id="resetAllChecklist"><i class="fas fa-undo-alt"></i> ریست همه تیک‌ها</button>
+        <button class="action-btn" id="resetAllChecklist"><i class="fas fa-undo-alt"></i> ریست همه تیک ها</button>
     </div>
 
     <div class="table-wrapper">
@@ -394,14 +395,12 @@
         </table>
     </div>
 
-    <!-- فوتر جدید با متن سفارشی -->
     <div class="custom-footer">
-        <p>✍️ این برنامه توسط محمد میراحمدیان تهیه شده</p>
-        <p>ߙ왇ت استفاده از این برنامه شادی روح شهداء و امام شهیدان صلوات</p>
+        <p>این برنامه توسط محمد میراحمدیان تهیه شده</p>
+        <p>جهت استفاده از این برنامه شادی روح شهداء و امام شهیدان صلوات</p>
     </div>
 </div>
 
-<!-- مودال محاسبه‌گر -->
 <div id="modalOverlay" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header">
@@ -409,25 +408,24 @@
             <button class="modal-close" id="modalCloseBtn">&times;</button>
         </div>
         <div class="modal-body">
-            <label>ߧᢀ��تعداد نفرات:</label>
-            <input type="number" id="modalPersons" min="1" placeholder="مثلاً 50">
-            <button class="calc-btn" id="modalCalcBtn">ߍ㠙嘭اسبه مواد اولیه</button>
+            <label>تعداد نفرات:</label>
+            <input type="number" id="modalPersons" min="1" placeholder="مثلا 50">
+            <button class="calc-btn" id="modalCalcBtn">محاسبه مواد اولیه</button>
             <div id="modalResult" class="result-box"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // داده‌های مواد اولیه
     const ingredientsData = {
         "عدسی": { "عدس": 40, "رب گوجه فرنگی": 5, "پیاز": 20, "کره": 5, "دارچین": 0.25, "فلفل سیاه": 0.15, "زردچوبه": 0.25, "نمک": 5, "جوپرک": 10 },
-        "املت گوجه‌فرنگی": { "کره حیوانی": 10, "گوجه‌فرنگی": 120, "تخم مرغ (عدد)": 1.5, "روغن سرخ‌کردنی": 10 },
+        "املت گوجه فرنگی": { "کره حیوانی": 10, "گوجه فرنگی": 120, "تخم مرغ (عدد)": 1.5, "روغن سرخ کردنی": 10 },
         "سالاد کلم": { "کشمش یا گردو": 10, "کلم بنفش": 10, "کلم سفید": 40, "ذرت شیرین": 15, "هویج": 25 },
-        "سالاد شیرازی": { "خیار": 60, "گوجه‌فرنگی": 50, "پیاز": 40 },
+        "سالاد شیرازی": { "خیار": 60, "گوجه فرنگی": 50, "پیاز": 40 },
         "ماست و خیار": { "خیار": 40, "ماست": 110, "نعناع خشک": "به مقدار لازم" }
     };
 
-    const clickableFoods = ["عدسی", "املت گوجه‌فرنگی", "سالاد کلم", "سالاد شیرازی", "ماست و خیار"];
+    const clickableFoods = ["عدسی", "املت گوجه فرنگی", "سالاد کلم", "سالاد شیرازی", "ماست و خیار"];
 
     const mealsData = [
         { day: "اول", breakfast: "پنیر ۳۰ گرمی + تخم مرغ + کره + عسل + مربا + چای + شکر", lunch: "باقلاپلو با گوشت", sideLunch: "ماست و خیار + نوشابه + پرتقال + نصف نان", dinner: "خوراک کوبیده مرغ", sideDinner: "نصف لیموترش + پیاز + نوشابه + نارنگی + سالاد کلم + نصف نان" },
@@ -519,31 +517,31 @@
     function openModal(food) {
         modalFoodName.innerText = food;
         modalPersons.value = '';
-        modalResult.innerHTML = '<div style="text-align:center; color:gray; font-family: Vazirmatn;">ߓꠘ蘧 وارد کردن تعداد نفرات، مواد را محاسبه کنید</div>';
+        modalResult.innerHTML = '<div style="text-align:center; color:gray;">با وارد کردن تعداد نفرات، مواد را محاسبه کنید</div>';
         modal.classList.add('active');
         document.getElementById('modalCalcBtn').onclick = () => {
             let persons = parseInt(modalPersons.value);
             if(isNaN(persons) || persons < 1) {
-                modalResult.innerHTML = '<div style="color:red; font-family: Vazirmatn;">❌ تعداد نفرات معتبر وارد کنید</div>';
+                modalResult.innerHTML = '<div style="color:red;">تعداد نفرات معتبر وارد کنید</div>';
                 return;
             }
             const ingredients = ingredientsData[food];
-            let html = `<div style="font-weight:bold; margin-bottom:10px;">ߍ⠙噈اد لازم برای ${persons} نفر (${food}):</div>`;
+            let html = `<div style="font-weight:bold; margin-bottom:10px;">مواد لازم برای ${persons} نفر (${food}):</div>`;
             for(let [item, base] of Object.entries(ingredients)) {
                 if(typeof base === 'number') {
                     let total = base * persons;
                     if(item.includes('تخم مرغ')) {
-                        html += `<div class="result-item"><span>ߥꠤ{item}</span><span>${Math.ceil(total)} عدد</span></div>`;
+                        html += `<div class="result-item"><span>${item}</span><span>${Math.ceil(total)} عدد</span></div>`;
                     } else if(item.includes('کره حیوانی') || item === 'کره') {
                         let butterCount = Math.ceil(total / 10);
-                        html += `<div class="result-item"><span>ߧ蠤{item}</span><span>${total} گرم (${butterCount} عدد کره ۱۰ گرمی)</span></div>`;
+                        html += `<div class="result-item"><span>${item}</span><span>${total} گرم (${butterCount} عدد کره ۱۰ گرمی)</span></div>`;
                     } else if(total >= 1000) {
-                        html += `<div class="result-item"><span>ߓ栤{item}</span><span>${total} گرم (${Math.round(total/1000)} کیلوگرم)</span></div>`;
+                        html += `<div class="result-item"><span>${item}</span><span>${total} گرم (${Math.round(total/1000)} کیلوگرم)</span></div>`;
                     } else {
-                        html += `<div class="result-item"><span>ߓ栤{item}</span><span>${total} گرم</span></div>`;
+                        html += `<div class="result-item"><span>${item}</span><span>${total} گرم</span></div>`;
                     }
                 } else {
-                    html += `<div class="result-item"><span>ߌ{item}</span><span>${base}</span></div>`;
+                    html += `<div class="result-item"><span>${item}</span><span>${base}</span></div>`;
                 }
             }
             modalResult.innerHTML = html;
