@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>برنامه غذایی کاروان‌های ارزان قیمت</title>
+    <title>برنامه غذایی کاروان‌های ارزان قیمت | مدیریت هوشمند</title>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -55,9 +55,12 @@
             --modal-overlay: rgba(0, 0, 0, 0.8);
         }
 
+        body, body * {
+            font-family: 'Vazirmatn', 'Segoe UI', system-ui, sans-serif;
+        }
+
         body {
             background: linear-gradient(145deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-            font-family: 'Vazirmatn', 'Segoe UI', system-ui, sans-serif;
             padding: 2rem 1.5rem;
             color: var(--text-primary);
             transition: all 0.3s ease;
@@ -102,9 +105,8 @@
             border: none;
             padding: 0.6rem 1.3rem;
             border-radius: 60px;
-            font-family: 'Vazirmatn', sans-serif;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--text-primary);
             cursor: pointer;
             transition: all 0.2s ease;
@@ -117,6 +119,15 @@
         .action-btn:hover {
             transform: translateY(-2px);
             background: var(--icon-color);
+            color: white;
+        }
+
+        .report-btn {
+            background: linear-gradient(135deg, #2c6e2c, #5fa83d);
+            color: white;
+        }
+        .waste-btn {
+            background: linear-gradient(135deg, #e67e22, #f39c12);
             color: white;
         }
 
@@ -227,6 +238,7 @@
             direction: rtl;
         }
 
+        /* مودال عمومی */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -251,13 +263,14 @@
             background: var(--modal-bg);
             border-radius: 2rem;
             width: 90%;
-            max-width: 500px;
+            max-width: 550px;
             padding: 2rem;
             box-shadow: 0 25px 50px rgba(0,0,0,0.3);
             transform: scale(0.9);
             transition: transform 0.3s ease;
             border: 1px solid var(--border-color);
-            font-family: 'Vazirmatn', sans-serif;
+            max-height: 80vh;
+            overflow-y: auto;
         }
         .modal-overlay.active .modal-container {
             transform: scale(1);
@@ -271,9 +284,8 @@
             padding-bottom: 0.8rem;
         }
         .modal-header h2 {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             color: var(--icon-color);
-            font-family: 'Vazirmatn', sans-serif;
         }
         .modal-close {
             background: none;
@@ -281,11 +293,12 @@
             font-size: 1.8rem;
             cursor: pointer;
             color: var(--text-secondary);
-            font-family: 'Vazirmatn', sans-serif;
         }
         .modal-body label {
-            font-family: 'Vazirmatn', sans-serif;
             font-weight: 500;
+        }
+        .modal-body input, .modal-body button {
+            font-family: 'Vazirmatn', sans-serif;
         }
         .modal-body input {
             width: 100%;
@@ -296,7 +309,6 @@
             color: var(--text-primary);
             font-size: 1rem;
             margin: 10px 0;
-            font-family: 'Vazirmatn', sans-serif;
         }
         .calc-btn {
             background: linear-gradient(135deg, #e67e22, #f39c12);
@@ -309,7 +321,6 @@
             width: 100%;
             margin-top: 10px;
             font-size: 1rem;
-            font-family: 'Vazirmatn', sans-serif;
         }
         .result-box {
             margin-top: 20px;
@@ -318,59 +329,55 @@
             padding: 1rem;
             max-height: 300px;
             overflow-y: auto;
-            font-family: 'Vazirmatn', sans-serif;
         }
         .result-item {
             padding: 8px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
-            font-family: 'Vazirmatn', sans-serif;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .waste-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .waste-item input {
+            width: 100px;
+            margin: 0;
+        }
+        .badge {
+            background: #e67e22;
+            color: white;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+        }
+        .info-note {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
         }
 
         @media print {
-            @page {
-                size: landscape;
-                margin: 0.5cm;
-            }
-            .action-bar,
-            .custom-footer,
-            .reset-day,
-            .action-btn,
-            .modal-overlay {
-                display: none !important;
-            }
-            .checklist-item input {
-                display: none !important;
-            }
-            .clickable-food i {
-                display: none !important;
-            }
-            body, body.dark {
-                background: white !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            .container {
-                background: white !important;
-                box-shadow: none !important;
-                padding: 0 !important;
-            }
-            .meal-table {
-                font-size: 0.7rem !important;
-            }
-            .meal-table th, .meal-table td {
-                border: 1px solid #999 !important;
-                padding: 0.4rem 0.3rem !important;
-            }
-            .meal-table tr {
-                page-break-inside: avoid;
-            }
+            @page { size: landscape; margin: 0.5cm; }
+            .action-bar, .custom-footer, .reset-day, .action-btn, .modal-overlay { display: none !important; }
+            .checklist-item input { display: none !important; }
+            .clickable-food i { display: none !important; }
+            body, body.dark { background: white !important; padding: 0 !important; }
+            .container { background: white !important; box-shadow: none !important; padding: 0 !important; }
+            .meal-table { font-size: 0.7rem !important; }
+            .meal-table th, .meal-table td { border: 1px solid #999 !important; padding: 0.4rem 0.3rem !important; }
+            .meal-table tr { page-break-inside: avoid; }
         }
 
         @media (max-width: 760px) {
             body { padding: 1rem; }
             .main-title h1 { font-size: 1.3rem; }
+            .action-btn { font-size: 0.7rem; padding: 0.4rem 0.8rem; }
         }
     </style>
 </head>
@@ -382,15 +389,15 @@
 
     <div class="action-bar">
         <button class="action-btn" id="darkModeToggle"><i class="fas fa-moon"></i> حالت شب</button>
-        <button class="action-btn" id="printBtn"><i class="fas fa-print"></i> پرینت / PDF</button>
-        <button class="action-btn" id="resetAllChecklist"><i class="fas fa-undo-alt"></i> ریست همه تیک ها</button>
+        <button class="action-btn" id="printBtn"><i class="fas fa-print"></i> پرینت</button>
+        <button class="action-btn" id="resetAllChecklist"><i class="fas fa-undo-alt"></i> ریست تیک ها</button>
+        <button class="action-btn report-btn" id="weeklyReportBtn"><i class="fas fa-clipboard-list"></i> گزارش خرید هفتگی</button>
+        <button class="action-btn waste-btn" id="wasteManageBtn"><i class="fas fa-recycle"></i> ثبت مازاد امروز</button>
     </div>
 
     <div class="table-wrapper">
         <table class="meal-table" id="mealTable">
-            <thead>
-                <tr><th>روز</th><th>صبحانه</th><th>ناهار</th><th>دورچین هتل (ناهار)</th><th>شام</th><th>دورچین هتل (شام)</th></tr>
-            </thead>
+            <thead><tr><th>روز</th><th>صبحانه</th><th>ناهار</th><th>دورچین هتل (ناهار)</th><th>شام</th><th>دورچین هتل (شام)</th></tr></thead>
             <tbody id="mealTableBody"></tbody>
         </table>
     </div>
@@ -401,12 +408,10 @@
     </div>
 </div>
 
+<!-- مودال محاسبه مواد -->
 <div id="modalOverlay" class="modal-overlay">
     <div class="modal-container">
-        <div class="modal-header">
-            <h2 id="modalFoodName">عدسی</h2>
-            <button class="modal-close" id="modalCloseBtn">&times;</button>
-        </div>
+        <div class="modal-header"><h2 id="modalFoodName">عدسی</h2><button class="modal-close" id="modalCloseBtn">&times;</button></div>
         <div class="modal-body">
             <label>تعداد نفرات:</label>
             <input type="number" id="modalPersons" min="1" placeholder="مثلا 50">
@@ -416,7 +421,47 @@
     </div>
 </div>
 
+<!-- مودال گزارش خرید هفتگی -->
+<div id="reportModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header"><h2><i class="fas fa-clipboard-list"></i> گزارش خرید هفتگی</h2><button class="modal-close" id="reportModalClose">&times;</button></div>
+        <div class="modal-body">
+            <label>تعداد نفرات کاروان:</label>
+            <input type="number" id="reportPersons" min="1" placeholder="مثلا 50" value="50">
+            <button class="calc-btn" id="generateReportBtn">📊 محاسبه و نمایش گزارش</button>
+            <div id="reportResult" class="result-box"></div>
+            <div class="info-note">
+                <i class="fas fa-info-circle"></i> این گزارش فقط مواد مورد نیاز برای صبحانه‌های گرم (عدسی، املت) و دورچین‌های سرد (سالادها و ماست و خیار) را نشان می‌دهد.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال مدیریت ضایعات و مازاد -->
+<div id="wasteModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header"><h2><i class="fas fa-recycle"></i> ثبت مازاد و ضایعات</h2><button class="modal-close" id="wasteModalClose">&times;</button></div>
+        <div class="modal-body">
+            <p style="margin-bottom: 15px;">موادی که امروز اضافه آمدند را وارد کنید:</p>
+            <div id="wasteInputs"></div>
+            <button class="calc-btn" id="saveWasteBtn">💾 ذخیره مازاد و اعمال در گزارش</button>
+            <button class="action-btn" id="resetWasteBtn" style="margin-top: 10px; width:100%; background:#aaa;">🗑️ ریست همه مازادها</button>
+            <div id="wasteInfo" style="margin-top: 15px; font-size: 0.8rem; color: green;"></div>
+        </div>
+    </div>
+</div>
+
 <script>
+    // مواد اولیه و تعدد دفعات در هفته
+    const weeklyFoodsCount = {
+        "عدسی": 0,            // در برنامه فعلی عدسی در صبحانه نیست
+        "املت گوجه فرنگی": 0, // در برنامه اصلی املت نداریم
+        "سالاد کلم": 5,       // تقریبا هر روز در دورچین شام هست
+        "سالاد شیرازی": 1,    // روز پنجم در دورچین ناهار
+        "ماست و خیار": 2      // روز اول و سوم در دورچین ناهار
+    };
+
+    // نقشه مواد اولیه
     const ingredientsData = {
         "عدسی": { "عدس": 40, "رب گوجه فرنگی": 5, "پیاز": 20, "کره": 5, "دارچین": 0.25, "فلفل سیاه": 0.15, "زردچوبه": 0.25, "نمک": 5, "جوپرک": 10 },
         "املت گوجه فرنگی": { "کره حیوانی": 10, "گوجه فرنگی": 120, "تخم مرغ (عدد)": 1.5, "روغن سرخ کردنی": 10 },
@@ -427,6 +472,7 @@
 
     const clickableFoods = ["عدسی", "املت گوجه فرنگی", "سالاد کلم", "سالاد شیرازی", "ماست و خیار"];
 
+    // داده‌های جدول
     const mealsData = [
         { day: "اول", breakfast: "پنیر ۳۰ گرمی + تخم مرغ + کره + عسل + مربا + چای + شکر", lunch: "باقلاپلو با گوشت", sideLunch: "ماست و خیار + نوشابه + پرتقال + نصف نان", dinner: "خوراک کوبیده مرغ", sideDinner: "نصف لیموترش + پیاز + نوشابه + نارنگی + سالاد کلم + نصف نان" },
         { day: "دوم", breakfast: "پنیر ۳۰ گرمی + خیار و گوجه + کره + عسل + حلوا شکری + چای + شکر", lunch: "چلوخورشت قورمه سبزی", sideLunch: "پیاز + ماست + نوشابه + پرتقال + نصف نان", dinner: "خوراک جوجه کباب", sideDinner: "نصف لیموترش + دوغ + موز + زیتون + سالاد کلم + نصف نان" },
@@ -436,6 +482,80 @@
         { day: "ششم", breakfast: "پنیر ۳۰ گرمی + خیار و گوجه + کره + عسل + حلوا شکری + چای + شکر", lunch: "چلوخورشت قورمه سبزی", sideLunch: "پیاز + ماست + نوشابه + پرتقال + نصف نان", dinner: "خوراک جوجه کباب", sideDinner: "نصف لیموترش + دوغ + موز + زیتون + سالاد کلم + نصف نان" }
     ];
 
+    // بارگذاری مازادها از localStorage
+    let wasteStock = JSON.parse(localStorage.getItem('wasteStock_v1') || '{}');
+    function saveWasteStock() { localStorage.setItem('wasteStock_v1', JSON.stringify(wasteStock)); }
+
+    // محاسبه مقدار کل هفتگی برای یک غذا
+    function getWeeklyTotal(foodName, persons) {
+        let count = weeklyFoodsCount[foodName] || 0;
+        if(count === 0) return null;
+        const ingredients = ingredientsData[foodName];
+        if(!ingredients) return null;
+        let result = {};
+        for(let [item, base] of Object.entries(ingredients)) {
+            if(typeof base === 'number') {
+                let total = base * persons * count;
+                result[item] = total;
+            } else {
+                result[item] = base;
+            }
+        }
+        return result;
+    }
+
+    // محاسبه کل هفتگی همه مواد
+    function getAllWeeklyTotal(persons) {
+        let allTotals = {};
+        for(let food of Object.keys(weeklyFoodsCount)) {
+            let total = getWeeklyTotal(food, persons);
+            if(total) {
+                for(let [item, amount] of Object.entries(total)) {
+                    if(typeof amount === 'number') {
+                        allTotals[item] = (allTotals[item] || 0) + amount;
+                    }
+                }
+            }
+        }
+        return allTotals;
+    }
+
+    // نمایش گزارش با احتساب مازاد
+    function showWeeklyReport(persons) {
+        let totals = getAllWeeklyTotal(persons);
+        let html = `<div style="font-weight:bold; margin-bottom:10px;">📦 مواد اولیه مورد نیاز برای ${persons} نفر در کل هفته:</div>`;
+        
+        for(let [item, amount] of Object.entries(totals)) {
+            let wasteAmount = wasteStock[item] || 0;
+            let suggested = Math.max(0, amount - wasteAmount);
+            let displayAmount = formatAmountForDisplay(amount, item);
+            let displaySuggested = formatAmountForDisplay(suggested, item);
+            
+            html += `<div class="result-item">`;
+            html += `<span><strong>${item}</strong></span>`;
+            html += `<span>نیاز: ${displayAmount}</span>`;
+            if(wasteAmount > 0) {
+                html += `<span style="color:red; font-size:0.75rem;">مازاد موجود: ${formatAmountForDisplay(wasteAmount, item)}</span>`;
+                html += `<span style="color:green; font-weight:bold;">پیشنهادی: ${displaySuggested}</span>`;
+            } else {
+                html += `<span style="color:green;">پیشنهادی: ${displayAmount}</span>`;
+            }
+            html += `</div>`;
+        }
+        return html;
+    }
+
+    function formatAmountForDisplay(amount, item) {
+        if(item.includes('تخم مرغ')) return Math.ceil(amount) + ' عدد';
+        if(item.includes('کره حیوانی') || item === 'کره') {
+            let butterCount = Math.ceil(amount / 10);
+            return amount + ' گرم (' + butterCount + ' عدد کره ۱۰ گرمی)';
+        }
+        if(amount >= 1000) return amount + ' گرم (' + Math.round(amount/1000) + ' کیلوگرم)';
+        return amount + ' گرم';
+    }
+
+    // توابع عمومی جدول و چک‌لیست
     function wrapClickableItems(text) {
         let items = text.split(' + ');
         let wrapped = items.map(item => {
@@ -450,7 +570,7 @@
     }
 
     let checklistState = JSON.parse(localStorage.getItem('mealChecklist_v1') || '{}');
-    function saveState() { localStorage.setItem('mealChecklist_v1', JSON.stringify(checklistState)); }
+    function saveChecklist() { localStorage.setItem('mealChecklist_v1', JSON.stringify(checklistState)); }
 
     function renderTable() {
         const tbody = document.getElementById('mealTableBody');
@@ -461,7 +581,6 @@
             tdDay.className = 'day-cell';
             tdDay.innerHTML = `<i class="fas fa-calendar-day"></i> ${item.day}<br><button class="reset-day" data-row="${rowIdx}"><i class="fas fa-trash-alt"></i> ریست روز</button>`;
             tr.appendChild(tdDay);
-
             tr.appendChild(createChecklistCell(`row_${rowIdx}_breakfast`, wrapClickableItems(item.breakfast)));
             tr.appendChild(createChecklistCell(`row_${rowIdx}_lunch`, item.lunch));
             tr.appendChild(createChecklistCell(`row_${rowIdx}_sideLunch`, wrapClickableItems(item.sideLunch)));
@@ -486,7 +605,7 @@
         if (cb.checked) labelSpan.classList.add('checked-text');
         cb.addEventListener('change', (e) => {
             checklistState[id] = e.target.checked;
-            saveState();
+            saveChecklist();
             if(e.target.checked) labelSpan.classList.add('checked-text');
             else labelSpan.classList.remove('checked-text');
         });
@@ -502,6 +621,7 @@
             el.addEventListener('click', foodClickHandler);
         });
     }
+    
     function foodClickHandler(e) {
         e.stopPropagation();
         const foodName = this.getAttribute('data-food');
@@ -510,10 +630,12 @@
         }
     }
 
+    // مودال مواد
     const modal = document.getElementById('modalOverlay');
     const modalFoodName = document.getElementById('modalFoodName');
     const modalPersons = document.getElementById('modalPersons');
     const modalResult = document.getElementById('modalResult');
+    
     function openModal(food) {
         modalFoodName.innerText = food;
         modalPersons.value = '';
@@ -530,16 +652,7 @@
             for(let [item, base] of Object.entries(ingredients)) {
                 if(typeof base === 'number') {
                     let total = base * persons;
-                    if(item.includes('تخم مرغ')) {
-                        html += `<div class="result-item"><span>${item}</span><span>${Math.ceil(total)} عدد</span></div>`;
-                    } else if(item.includes('کره حیوانی') || item === 'کره') {
-                        let butterCount = Math.ceil(total / 10);
-                        html += `<div class="result-item"><span>${item}</span><span>${total} گرم (${butterCount} عدد کره ۱۰ گرمی)</span></div>`;
-                    } else if(total >= 1000) {
-                        html += `<div class="result-item"><span>${item}</span><span>${total} گرم (${Math.round(total/1000)} کیلوگرم)</span></div>`;
-                    } else {
-                        html += `<div class="result-item"><span>${item}</span><span>${total} گرم</span></div>`;
-                    }
+                    html += `<div class="result-item"><span>${item}</span><span>${formatAmountForDisplay(total, item)}</span></div>`;
                 } else {
                     html += `<div class="result-item"><span>${item}</span><span>${base}</span></div>`;
                 }
@@ -547,18 +660,102 @@
             modalResult.innerHTML = html;
         };
     }
-    document.getElementById('modalCloseBtn').onclick = () => modal.classList.remove('active');
-    modal.onclick = (e) => { if(e.target === modal) modal.classList.remove('active'); };
 
+    // مودال گزارش
+    const reportModal = document.getElementById('reportModal');
+    const reportModalClose = document.getElementById('reportModalClose');
+    const generateReportBtn = document.getElementById('generateReportBtn');
+    const reportResult = document.getElementById('reportResult');
+    const reportPersons = document.getElementById('reportPersons');
+    
+    document.getElementById('weeklyReportBtn').onclick = () => {
+        reportPersons.value = '50';
+        reportResult.innerHTML = '<div style="text-align:center; color:gray;">تعداد نفرات را وارد کنید و دکمه محاسبه را بزنید</div>';
+        reportModal.classList.add('active');
+    };
+    generateReportBtn.onclick = () => {
+        let persons = parseInt(reportPersons.value);
+        if(isNaN(persons) || persons < 1) {
+            reportResult.innerHTML = '<div style="color:red;">تعداد نفرات معتبر وارد کنید</div>';
+            return;
+        }
+        reportResult.innerHTML = showWeeklyReport(persons);
+    };
+    reportModalClose.onclick = () => reportModal.classList.remove('active');
+
+    // مودال مازاد
+    const wasteModal = document.getElementById('wasteModal');
+    const wasteModalClose = document.getElementById('wasteModalClose');
+    const wasteInputs = document.getElementById('wasteInputs');
+    const saveWasteBtn = document.getElementById('saveWasteBtn');
+    const resetWasteBtn = document.getElementById('resetWasteBtn');
+    const wasteInfo = document.getElementById('wasteInfo');
+    
+    function buildWasteInputs() {
+        let html = '';
+        let allItems = new Set();
+        for(let food of Object.keys(ingredientsData)) {
+            for(let item of Object.keys(ingredientsData[food])) {
+                if(typeof ingredientsData[food][item] === 'number') allItems.add(item);
+            }
+        }
+        allItems.forEach(item => {
+            let currentWaste = wasteStock[item] || 0;
+            html += `<div class="waste-item">
+                        <span style="width:120px;">${item}:</span>
+                        <input type="number" id="waste_${item}" value="${currentWaste}" min="0" step="10" placeholder="مقدار مازاد (گرم)">
+                        <span>گرم</span>
+                     </div>`;
+        });
+        wasteInputs.innerHTML = html;
+    }
+    
+    document.getElementById('wasteManageBtn').onclick = () => {
+        buildWasteInputs();
+        wasteInfo.innerHTML = '';
+        wasteModal.classList.add('active');
+    };
+    
+    saveWasteBtn.onclick = () => {
+        let newWaste = {};
+        for(let item of Object.keys(wasteStock)) {
+            let input = document.getElementById(`waste_${item}`);
+            if(input) newWaste[item] = parseInt(input.value) || 0;
+        }
+        for(let food of Object.keys(ingredientsData)) {
+            for(let item of Object.keys(ingredientsData[food])) {
+                if(typeof ingredientsData[food][item] === 'number' && !newWaste[item]) {
+                    let input = document.getElementById(`waste_${item}`);
+                    if(input) newWaste[item] = parseInt(input.value) || 0;
+                }
+            }
+        }
+        wasteStock = newWaste;
+        saveWasteStock();
+        wasteInfo.innerHTML = '<i class="fas fa-check-circle"></i> مازادها با موفقیت ذخیره شد. در گزارش خرید هفتگی اعمال می‌شود.';
+        setTimeout(() => wasteInfo.innerHTML = '', 3000);
+    };
+    
+    resetWasteBtn.onclick = () => {
+        wasteStock = {};
+        saveWasteStock();
+        buildWasteInputs();
+        wasteInfo.innerHTML = '<i class="fas fa-trash-alt"></i> همه مازادها ریست شدند.';
+        setTimeout(() => wasteInfo.innerHTML = '', 2000);
+    };
+    
+    wasteModalClose.onclick = () => wasteModal.classList.remove('active');
+    
+    // رویدادهای عمومی
     function resetDayChecklist(rowIndex) {
         ['breakfast','lunch','sideLunch','dinner','sideDinner'].forEach(meal => {
             delete checklistState[`row_${rowIndex}_${meal}`];
         });
-        saveState();
+        saveChecklist();
         renderTable();
     }
-    function resetAll() { checklistState = {}; saveState(); renderTable(); }
-
+    function resetAll() { checklistState = {}; saveChecklist(); renderTable(); }
+    
     let darkMode = localStorage.getItem('darkMode') === 'true';
     if(darkMode) document.body.classList.add('dark');
     document.getElementById('darkModeToggle').onclick = () => {
@@ -567,12 +764,18 @@
     };
     document.getElementById('printBtn').onclick = () => window.print();
     document.getElementById('resetAllChecklist').onclick = resetAll;
+    document.getElementById('modalCloseBtn').onclick = () => modal.classList.remove('active');
+    modal.onclick = (e) => { if(e.target === modal) modal.classList.remove('active'); };
+    reportModal.onclick = (e) => { if(e.target === reportModal) reportModal.classList.remove('active'); };
+    wasteModal.onclick = (e) => { if(e.target === wasteModal) wasteModal.classList.remove('active'); };
+    
     document.addEventListener('click', (e) => {
         if(e.target.closest('.reset-day')) {
             let row = e.target.closest('.reset-day').getAttribute('data-row');
             if(row) resetDayChecklist(parseInt(row));
         }
     });
+    
     renderTable();
 </script>
 </body>
