@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 2,
- "updated": "2026-09-25T10:06:37.347Z",
+ "version": 3,
+ "updated": "2026-09-25T10:08:43.707Z",
  "groups": [
   {
    "id": "1b",
@@ -488,6 +488,18 @@ window.ASH_DATA = {
     {
      "i": "lettuce",
      "q": 70
+    },
+    {
+     "i": "carrot",
+     "q": 25
+    },
+    {
+     "i": "tomato",
+     "q": 40
+    },
+    {
+     "i": "cucumber",
+     "q": 40
     }
    ]
   },
