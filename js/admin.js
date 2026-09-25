@@ -504,6 +504,9 @@
   }
 
   (async () => {
+    await AdminAuth.gate();
+    document.body.classList.remove('locked');
+    $('#lockBtn').onclick = AdminAuth.lock;
     const draft = store.get(K.draft, null);
     if (draft?.dirty && draft.data) {
       data = draft.data;

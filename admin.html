@@ -17,6 +17,7 @@
     .atabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px; background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 68px; z-index: 9; }
     .atabs button { border: 0; background: var(--bg); border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600; white-space: nowrap; min-height: 42px; }
     .atabs button.on { background: var(--brand); color: var(--brand-ink); }
+    body.locked .atabs, body.locked main, body.locked #lockBtn { display: none !important; }
     .ascreen { display: none; }
     .ascreen.on { display: block; }
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -45,8 +46,8 @@
     ol { padding-right: 20px; }
   </style>
 </head>
-<body>
-  <header class="topbar"><div><h1>پنل مدیریت آشپزیار</h1><div class="sub">ویرایش برنامه‌های غذایی و انتشار برای همه کاربران</div></div></header>
+<body class="locked">
+  <header class="topbar"><div style="flex:1"><h1>پنل مدیریت آشپزیار</h1><div class="sub">ویرایش برنامه‌های غذایی و انتشار برای همه کاربران</div></div><button class="mini" id="lockBtn" style="background:rgba(255,255,255,.2);color:inherit">🔒 قفل</button></header>
   <div class="atabs" id="atabs">
     <button data-t="plans" class="on">برنامه‌ها</button>
     <button data-t="items">اقلام</button>
@@ -65,6 +66,7 @@
   <div class="toast" id="toast"></div>
   <script src="data/menus.js"></script>
   <script src="js/core.js"></script>
+  <script src="js/admin-auth.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>
