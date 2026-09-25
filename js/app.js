@@ -82,9 +82,9 @@
       store.set(K.data, data);
       if (changed) toast('برنامه‌های غذایی به‌روز شد ✅');
     } catch {
-      // opened as a local file or offline: fall back to the built-in copy if it is newer
+      // opened as a local file or offline: the built-in copy is the file on disk / in the offline cache
       const builtIn = window.ASH_DATA;
-      if (builtIn && (!data || (builtIn.version || 0) > (data.version || 0))) {
+      if (builtIn) {
         data = builtIn;
         store.set(K.data, data);
       }

@@ -280,15 +280,72 @@
     return errs;
   }
 
+  // ---------- saving into the project folder (Chrome / Edge)
+  function idb() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('ashpazyar-admin', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+  async function idbGet(k) {
+    try {
+      const db = await idb();
+      return await new Promise((res) => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(null); });
+    } catch { return null; }
+  }
+  async function idbSet(k, v) {
+    try {
+      const db = await idb();
+      await new Promise((res) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = res; t.onerror = res; });
+    } catch {}
+  }
+  async function pickDir() {
+    if (!window.showDirectoryPicker) { toast('این مرورگر پشتیبانی نمی‌کند؛ از Chrome یا Edge استفاده کنید'); return null; }
+    try {
+      const dir = await window.showDirectoryPicker({ id: 'ashpazyar-data', mode: 'readwrite' });
+      let hasMenus = true;
+      try { await dir.getFileHandle('menus.json'); } catch { hasMenus = false; }
+      if (!hasMenus && !confirm(`در پوشه «${dir.name}» فایل menus.json نیست. مطمئنید این پوشه data پروژه است؟`)) return null;
+      await idbSet('dataDir', dir);
+      return dir;
+    } catch (e) {
+      if (e.name !== 'AbortError') toast('خطا: ' + e.message);
+      return null;
+    }
+  }
+  async function writeFile(dir, name, text) {
+    const fh = await dir.getFileHandle(name, { create: true });
+    const w = await fh.createWritable();
+    await w.write(text);
+    await w.close();
+  }
+  function downloadFiles() {
+    const json = JSON.stringify(data, null, 1);
+    const save = (name, text, type) => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text], { type }));
+      a.download = name;
+      a.click();
+    };
+    save('menus.json', json, 'application/json');
+    setTimeout(() => save('menus.js', builtInJs(json), 'text/javascript'), 400);
+  }
+
   // ---------- publish
   function renderPublish() {
     const testing = !!store.get('ash.localTest', null);
-    $('#t-publish').innerHTML = `<div class="card"><h2>🧪 آزمایش روی همین دستگاه (بدون گیت‌هاب)</h2>
-      <p class="hint">تغییرات فقط در برنامه کاربرِ همین مرورگر دیده می‌شود تا قبل از انتشار امتحانش کنید. برای کاربران دیگر تغییری ایجاد نمی‌شود.</p>
-      <div class="btn-row"><button class="btn" id="testOn">اعمال روی همین دستگاه</button>
-      <button class="btn ghost" id="testOff" ${testing ? '' : 'disabled style="opacity:.4"'}>خروج از حالت آزمایشی</button></div>
-      <p class="hint" style="margin-top:10px">برای ذخیره دائمی در پوشه پروژه: دکمه زیر دو فایل <code>menus.json</code> و <code>menus.js</code> را دانلود می‌کند؛ آن‌ها را جایگزین فایل‌های پوشه <code>data</code> کنید.</p>
-      <button class="btn ghost" id="dl" style="margin-top:6px">💾 دانلود فایل‌ها برای پوشه data</button></div>
+    $('#t-publish').innerHTML = `<div class="card"><h2>💾 ذخیره در پوشه پروژه (روی همین کامپیوتر)</h2>
+      <p class="hint">تغییرات مستقیم در پوشه <code>data</code> پروژه ذخیره می‌شود. بار اول از شما می‌خواهد پوشه <code>data</code> را انتخاب کنید؛ بعد از آن فقط یک کلیک است.</p>
+      <button class="btn" id="saveDisk" style="margin-top:8px">💾 ذخیره در پوشه data</button>
+      <button class="link" id="pickDisk">انتخاب یا تغییر پوشه</button>
+      <p class="hint" id="diskStatus"></p></div>
+
+      <div class="card"><h2>🧪 آزمایش روی همین دستگاه (بدون ذخیره فایل)</h2>
+      <p class="hint">تغییرات فقط در برنامه کاربرِ همین مرورگر دیده می‌شود تا قبل از ذخیره یا انتشار امتحانش کنید.</p>
+      <div class="btn-row"><button class="btn ghost" id="testOn">اعمال روی همین دستگاه</button>
+      <button class="btn ghost" id="testOff" ${testing ? '' : 'disabled style="opacity:.4"'}>خروج از حالت آزمایشی</button></div></div>
 
       <div class="card"><h2>انتشار برای همه کاربران</h2>
       <p class="hint">با زدن «انتشار»، فایل برنامه‌ها در مخزن گیت‌هاب ذخیره می‌شود و گوشی کاربران دفعه بعد که برنامه را با اینترنت باز کنند، به‌روز می‌شود.</p>
@@ -348,16 +405,28 @@
       toast('حالت آزمایشی خاموش شد');
       renderPublish();
     };
-    $('#dl').onclick = () => {
-      const json = JSON.stringify(data, null, 1);
-      const save = (name, text, type) => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([text], { type }));
-        a.download = name;
-        a.click();
-      };
-      save('menus.json', json, 'application/json');
-      setTimeout(() => save('menus.js', builtInJs(json), 'text/javascript'), 400);
+    const diskMsg = (m) => ($('#diskStatus').textContent = m);
+    idbGet('dataDir').then((h) => h && diskMsg(`پوشه انتخاب‌شده: ${h.name}`));
+    $('#pickDisk').onclick = async () => { if (await pickDir()) diskMsg('پوشه ذخیره شد. حالا «ذخیره در پوشه data» را بزنید.'); };
+    $('#saveDisk').onclick = async () => {
+      const errs = validate();
+      if (errs.length) return alert('ایراد در داده‌ها:\n' + errs.slice(0, 10).join('\n'));
+      if (!window.showDirectoryPicker) return downloadFiles();
+      try {
+        let dir = await idbGet('dataDir');
+        if (!dir || (await dir.requestPermission({ mode: 'readwrite' })) !== 'granted') dir = await pickDir();
+        if (!dir) return;
+        data.updated = new Date().toISOString();
+        const json = JSON.stringify(data, null, 1);
+        await writeFile(dir, 'menus.json', json);
+        await writeFile(dir, 'menus.js', builtInJs(json));
+        store.set(K.draft, { data, dirty });
+        try { localStorage.removeItem('ash.localTest'); } catch {}
+        diskMsg(`✅ ذخیره شد در پوشه «${dir.name}» — ${new Date().toLocaleTimeString('fa-IR')}. صفحه برنامه را تازه کنید.`);
+        toast('در پوشه data ذخیره شد ✅');
+      } catch (e) {
+        if (e.name !== 'AbortError') diskMsg('❌ خطا: ' + e.message);
+      }
     };
     $('#ul').onclick = () => $('#ulFile').click();
     $('#ulFile').onchange = async (e) => {
