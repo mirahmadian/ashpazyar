@@ -1,5 +1,5 @@
 // Bump VERSION whenever app files change so phones pick up the new version
-const VERSION = 'ashpazyar-v4';
+const VERSION = 'ashpazyar-v5';
 const CORE = ['./', 'index.html', 'css/style.css', 'js/core.js', 'js/app.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'data/menus.json', 'data/menus.js', 'fonts/Vazirmatn.woff2'];
 
 self.addEventListener('install', (e) => {
