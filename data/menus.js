@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 17,
- "updated": "2026-09-25T22:30:24.473Z",
+ "version": 18,
+ "updated": "2026-09-25T22:34:02.416Z",
  "groups": [
   {
    "id": "1b",
@@ -1202,7 +1202,7 @@ window.ASH_DATA = {
   },
   {
    "id": "normal-1405-07",
-   "name": "عادی  1ب و 1ج — اجرا از مهر ۱۴۰۵",
+   "name": "عادی: 1ب و 1ج — اجرا از مهر ۱۴۰۵",
    "groups": [
     "1b",
     "1c"
