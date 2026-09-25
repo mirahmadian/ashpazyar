@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 14,
- "updated": "2026-09-25T16:59:33.129Z",
+ "version": 15,
+ "updated": "2026-09-25T17:01:11.165Z",
  "groups": [
   {
    "id": "1b",
@@ -217,7 +217,7 @@ window.ASH_DATA = {
   },
   "lemon": {
    "name": "لیمو ترش",
-   "unit": "عدد",
+   "unit": "g",
    "cat": "صیفی"
   },
   "lettuce": {
