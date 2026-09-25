@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 10,
- "updated": "2026-09-25T11:17:30.465Z",
+ "version": 11,
+ "updated": "2026-09-25T11:19:47.768Z",
  "groups": [
   {
    "id": "1b",
@@ -313,6 +313,11 @@ window.ASH_DATA = {
   "imugv8vqm1xe": {
    "name": "سیر در روغن زیتون",
    "unit": "g",
+   "cat": "سایر"
+  },
+  "imugvbyq1xy1": {
+   "name": "پنیر مثلثی",
+   "unit": "عدد",
    "cat": "سایر"
   }
  },
