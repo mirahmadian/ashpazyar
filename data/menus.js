@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 8,
- "updated": "2026-09-25T11:13:47.417Z",
+ "version": 9,
+ "updated": "2026-09-25T11:14:19.722Z",
  "groups": [
   {
    "id": "1b",
@@ -117,7 +117,7 @@ window.ASH_DATA = {
   },
   "khorma": {
    "name": "شیره خرما",
-   "unit": "g",
+   "unit": "ml",
    "cat": "صبحانه"
   },
   "halva": {
