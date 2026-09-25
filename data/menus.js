@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 12,
- "updated": "2026-09-25T11:25:01.601Z",
+ "version": 13,
+ "updated": "2026-09-25T11:26:45.617Z",
  "groups": [
   {
    "id": "1b",
@@ -272,22 +272,22 @@ window.ASH_DATA = {
   },
   "orange": {
    "name": "پرتقال",
-   "unit": "عدد",
+   "unit": "g",
    "cat": "میوه"
   },
   "apple": {
    "name": "سیب",
-   "unit": "عدد",
+   "unit": "g",
    "cat": "میوه"
   },
   "banana": {
    "name": "موز",
-   "unit": "عدد",
+   "unit": "g",
    "cat": "میوه"
   },
   "fruit": {
    "name": "میوه فصل",
-   "unit": "عدد",
+   "unit": "g",
    "cat": "میوه"
   },
   "cup": {
