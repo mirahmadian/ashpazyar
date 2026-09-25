@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
  "version": 12,
- "updated": "2026-09-25T11:23:35.169Z",
+ "updated": "2026-09-25T11:25:01.601Z",
  "groups": [
   {
    "id": "1b",
@@ -317,12 +317,7 @@ window.ASH_DATA = {
   },
   "imugvbyq1xy1": {
    "name": "پنیر مثلثی",
-   "unit": "عدد",
-   "cat": "سایر"
-  },
-  "imugvgzmiyih": {
-   "name": "نخود خشک",
-   "unit": "g",
+   "unit": "بسته",
    "cat": "سایر"
   }
  },
