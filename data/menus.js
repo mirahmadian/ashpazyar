@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 13,
- "updated": "2026-09-25T11:26:45.617Z",
+ "version": 14,
+ "updated": "2026-09-25T16:59:33.129Z",
  "groups": [
   {
    "id": "1b",
