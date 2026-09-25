@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>مدیریت آشپزیار</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { padding-bottom: 40px; font-size: 16px; }
+    main { max-width: 900px; }
+    .atabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px; background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 68px; z-index: 9; }
+    .atabs button { border: 0; background: var(--bg); border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600; white-space: nowrap; min-height: 42px; }
+    .atabs button.on { background: var(--brand); color: var(--brand-ink); }
+    .ascreen { display: none; }
+    .ascreen.on { display: block; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    .toolbar select { flex: 1; min-width: 200px; }
+    .toolbar .btn { width: auto; min-height: 46px; font-size: 15px; }
+    .erow { display: grid; grid-template-columns: 1fr 90px 80px 40px; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .erow input, .erow select { min-height: 42px; padding: 4px 8px; font-size: 15px; }
+    .erow .u { font-size: 12px; color: var(--muted); text-align: center; }
+    .ehead { display: grid; grid-template-columns: 1fr 90px 80px 40px; gap: 6px; font-size: 12px; color: var(--muted); padding: 0 4px; }
+    .x { border: 0; background: var(--bad-soft); color: var(--bad); border-radius: 10px; height: 42px; cursor: pointer; font-size: 18px; }
+    .mealbox { border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin-top: 10px; }
+    .mealbox > label { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; font-weight: 700; }
+    .mealbox > label input { flex: 1; min-height: 42px; }
+    .dayhead { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .dayhead input[type=text] { flex: 1; min-width: 140px; font-weight: 700; }
+    .mini { border: 0; background: var(--brand-soft); color: var(--brand); border-radius: 10px; min-height: 40px; padding: 0 12px; cursor: pointer; font-weight: 600; }
+    .mini.red { background: var(--bad-soft); color: var(--bad); }
+    .irow { display: grid; grid-template-columns: 1fr 110px 130px 40px; gap: 6px; margin-bottom: 6px; }
+    .irow input, .irow select { min-height: 42px; padding: 4px 8px; font-size: 15px; }
+    @media (max-width: 560px) { .irow { grid-template-columns: 1fr 1fr; } .ehead { display: none; } .erow { grid-template-columns: 1fr 1fr 40px; padding-bottom: 6px; border-bottom: 1px dashed var(--line); } .erow select { grid-column: 1 / -1; } }
+    .dirty { display: none; background: var(--accent-soft); color: var(--accent); padding: 10px 14px; border-radius: 12px; margin-bottom: 12px; }
+    .dirty.on { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+    code { background: var(--bg); padding: 1px 6px; border-radius: 6px; direction: ltr; display: inline-block; }
+    ol { padding-right: 20px; }
+  </style>
+</head>
+<body>
+  <header class="topbar"><div><h1>پنل مدیریت آشپزیار</h1><div class="sub">ویرایش برنامه‌های غذایی و انتشار برای همه کاربران</div></div></header>
+  <div class="atabs" id="atabs">
+    <button data-t="plans" class="on">برنامه‌ها</button>
+    <button data-t="items">اقلام</button>
+    <button data-t="recipes">دستور پخت</button>
+    <button data-t="groups">گروه هتل‌ها</button>
+    <button data-t="publish">انتشار</button>
+  </div>
+  <main>
+    <div class="dirty" id="dirty"><span>تغییرات منتشرنشده دارید.</span><button class="mini" id="goPublish">انتشار ←</button></div>
+    <section class="ascreen on" id="t-plans"></section>
+    <section class="ascreen" id="t-items"></section>
+    <section class="ascreen" id="t-recipes"></section>
+    <section class="ascreen" id="t-groups"></section>
+    <section class="ascreen" id="t-publish"></section>
+  </main>
+  <div class="toast" id="toast"></div>
+  <script src="data/menus.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

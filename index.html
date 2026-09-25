@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>آشپزیار</title>
+  <meta name="description" content="محاسبه خرید دورچین کاروان‌های عتبات عالیات">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="آشپزیار">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar" id="topbar">
+    <button class="back" id="backBtn" aria-label="بازگشت">→</button>
+    <div>
+      <h1 id="title">آشپزیار</h1>
+      <div class="sub" id="subtitle">محاسبه خرید دورچین کاروان</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="install" id="installBar">
+      <span id="installText">برنامه را روی گوشی نصب کنید تا بدون اینترنت هم کار کند.</span>
+      <button class="btn small" id="installBtn">نصب</button>
+    </div>
+
+    <!-- CALC -->
+    <section class="screen on" id="scr-calc">
+      <div class="card">
+        <h2><span class="step">۱</span> گروه قیمتی هتل</h2>
+        <div class="chips" id="groupChips"></div>
+        <p class="hint" id="groupHint"></p>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">۲</span> برنامه غذایی</h2>
+        <div id="planList"></div>
+        <button class="link" id="viewMenuBtn">👁 دیدن منوی کامل این برنامه</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">۳</span> برای کدام روزها؟</h2>
+        <div class="chips" id="dayChips"></div>
+        <button class="link" id="allDaysBtn">انتخاب همه روزها</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">۴</span> تعداد زائر</h2>
+        <div class="stepper">
+          <button id="pMinus" aria-label="کم کردن">−</button>
+          <input id="pilgrims" inputmode="numeric" value="۵۰">
+          <button id="pPlus" aria-label="اضافه کردن">+</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">۵</span> نرخ دلار امروز</h2>
+        <label class="suffix"><input id="rate" inputmode="decimal" placeholder="مثلاً ۱۴۵۰"><em>دینار</em></label>
+        <p class="hint">برای مقایسه هزینه با سهمیه دلاری دورچین لازم است.</p>
+      </div>
+
+      <button class="btn" id="calcBtn">🧮 محاسبه کن</button>
+    </section>
+
+    <!-- RESULT -->
+    <section class="screen" id="scr-result"></section>
+
+    <!-- MENU VIEW -->
+    <section class="screen" id="scr-menu"></section>
+
+    <!-- PRICES -->
+    <section class="screen" id="scr-prices">
+      <div class="banner info">قیمت را همان‌طور که <b>عمده</b> می‌خرید وارد کنید؛ مثلاً «یک باکس ۳۰ عددی نوشابه». قیمت هر عدد را برنامه خودش حساب می‌کند.</div>
+      <div class="toggle" id="priceScope">
+        <button data-s="plan" class="on">اقلام برنامه من</button>
+        <button data-s="all">همه اقلام</button>
+      </div>
+      <input class="search" id="priceSearch" placeholder="🔍 جستجوی قلم…">
+      <div id="priceList"></div>
+    </section>
+
+    <!-- STOCK -->
+    <section class="screen" id="scr-stock">
+      <div class="banner info">اگر از خرید قبلی چیزی مانده، مقدارش را اینجا بنویسید تا از خرید بعدی کم شود.</div>
+      <input class="search" id="stockSearch" placeholder="🔍 جستجوی قلم…">
+      <div id="stockList"></div>
+      <button class="btn danger" id="clearStock" style="margin-top:12px">صفر کردن همه موجودی‌ها</button>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="screen" id="scr-history">
+      <div id="historyList"></div>
+      <div class="card no-print" style="margin-top:16px">
+        <h2>پشتیبان‌گیری</h2>
+        <p class="hint" style="margin-bottom:10px">همه اطلاعات (قیمت‌ها، موجودی و سابقه) فقط روی همین گوشی است. برای انتقال به گوشی دیگر یا جلوگیری از پاک شدن، فایل پشتیبان بگیرید.</p>
+        <div class="btn-row">
+          <button class="btn ghost" id="backupBtn">📤 گرفتن فایل پشتیبان</button>
+          <button class="btn ghost" id="restoreBtn">📥 بازگردانی</button>
+        </div>
+        <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="calc" class="on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h8"/></svg>
+      محاسبه
+    </button>
+    <button data-tab="prices">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+      قیمت‌ها
+    </button>
+    <button data-tab="stock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>
+      موجودی
+    </button>
+    <button data-tab="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      سابقه
+    </button>
+  </nav>
+
+  <div class="sheet-bg" id="sheetBg"></div>
+  <div class="sheet" id="sheet"></div>
+  <div class="toast" id="toast"></div>
+
+  <script src="data/menus.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
