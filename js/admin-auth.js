@@ -72,7 +72,7 @@ const AdminAuth = (() => {
       };
       inp.oninput = () => { if (Core.toEnDigits(inp.value).replace(/\D/g, '').length === 6) go(); };
       box.querySelector('#otpBtn').onclick = go;
-      inp.onkeydown = (e) => e.key === 'Enter' && go();
+      inp.onkeydown = (e) => { if (e.key === 'Enter') go(); };
       setTimeout(() => inp.focus(), 100);
     });
   }
