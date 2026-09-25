@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 9,
- "updated": "2026-09-25T11:14:19.722Z",
+ "version": 10,
+ "updated": "2026-09-25T11:17:30.465Z",
  "groups": [
   {
    "id": "1b",
@@ -250,11 +250,6 @@ window.ASH_DATA = {
    "unit": "g",
    "cat": "صیفی"
   },
-  "garlic": {
-   "name": "سیر ترشی",
-   "unit": "g",
-   "cat": "ترشی و زیتون"
-  },
   "pickle": {
    "name": "ترشی",
    "unit": "g",
@@ -314,6 +309,11 @@ window.ASH_DATA = {
    "name": "ظرف پلاستیکی",
    "unit": "عدد",
    "cat": "یک‌بارمصرف"
+  },
+  "imugv8vqm1xe": {
+   "name": "سیر در روغن زیتون",
+   "unit": "g",
+   "cat": "سایر"
   }
  },
  "recipes": {
