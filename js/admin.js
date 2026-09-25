@@ -7,7 +7,9 @@
   let data = null;
   let dirty = false;
   let planId = null;
-  const gh = Object.assign({ owner: '', repo: '', branch: 'main', path: 'data/menus.json', token: '' }, store.get(K.gh, {}));
+  const gh = Object.assign({ owner: 'mirahmadian', repo: 'ashpazyar', branch: 'main', path: 'data/menus.json', token: '' }, store.get(K.gh, {}));
+  gh.owner ||= 'mirahmadian';
+  gh.repo ||= 'ashpazyar';
 
   const UNITS = [['g', 'گرم (خرید با کیلو)'], ['ml', 'میلی‌لیتر (خرید با لیتر)'], ['عدد', 'عدد'], ['حبه', 'حبه'], ['بسته', 'بسته']];
   const unitShort = (u) => (u === 'g' ? 'گرم' : u === 'ml' ? 'میلی' : u);
@@ -366,10 +368,12 @@
       <button class="btn danger" id="reset" style="margin-top:10px">دور ریختن تغییرات و بارگیری نسخه منتشرشده</button></div>
 
       <div class="card"><h2>ساخت توکن (فقط یک بار)</h2><ol class="hint">
-        <li>در گیت‌هاب: <code>Settings → Developer settings → Personal access tokens → Fine-grained tokens</code></li>
-        <li>«Generate new token» را بزنید؛ در Repository access فقط همین مخزن را انتخاب کنید.</li>
-        <li>در Permissions، گزینه <b>Contents</b> را روی <b>Read and write</b> بگذارید.</li>
-        <li>توکن را کپی و در کادر بالا بچسبانید.</li></ol></div>`;
+        <li>این صفحه را باز کنید (باید وارد حساب گیت‌هاب باشید): <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">ساخت توکن جدید</a></li>
+        <li>در <b>Token name</b> یک نام بنویسید (مثلاً ashpazyar) و در <b>Expiration</b> مدت اعتبار را انتخاب کنید (مثلاً ۳۶۶ روز).</li>
+        <li>در <b>Repository access</b> گزینه <b>Only select repositories</b> را بزنید و مخزن <b>ashpazyar</b> را انتخاب کنید.</li>
+        <li>در <b>Permissions</b>، دکمه <b>Add permissions</b> را بزنید، <b>Contents</b> را انتخاب و آن را روی <b>Read and write</b> بگذارید.</li>
+        <li>پایین صفحه <b>Generate token</b> را بزنید، توکن (که با github_pat_ شروع می‌شود) را کپی و در کادر «توکن دسترسی» بالا بچسبانید.</li>
+        <li>توکن فقط یک بار نمایش داده می‌شود و فقط روی همین مرورگر ذخیره می‌شود؛ آن را به کسی ندهید.</li></ol></div>`;
 
     const saveGh = () => {
       Object.assign(gh, { owner: $('#ghOwner').value.trim(), repo: $('#ghRepo').value.trim(), branch: $('#ghBranch').value.trim() || 'main', path: $('#ghPath').value.trim() || 'data/menus.json', token: $('#ghToken').value.trim() });
