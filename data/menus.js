@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 20,
- "updated": "2026-09-26T07:03:15.842Z",
+ "version": 21,
+ "updated": "2026-09-26T07:06:11.234Z",
  "groups": [
   {
    "id": "1b",
@@ -323,6 +323,11 @@ window.ASH_DATA = {
   "imui14rahcjw": {
    "name": "مربا فله",
    "unit": "بسته",
+   "cat": "سایر"
+  },
+  "imui1pqe3lkv": {
+   "name": "عسل فله",
+   "unit": "g",
    "cat": "سایر"
   }
  },
