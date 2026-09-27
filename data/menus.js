@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 24,
- "updated": "2026-09-26T23:43:01.067Z",
+ "version": 25,
+ "updated": "2026-09-27T08:27:07.475Z",
  "groups": [
   {
    "id": "1b",
@@ -132,7 +132,7 @@ window.ASH_DATA = {
   },
   "date": {
    "name": "خرما",
-   "unit": "g",
+   "unit": "عدد",
    "cat": "صبحانه"
   },
   "bread": {
