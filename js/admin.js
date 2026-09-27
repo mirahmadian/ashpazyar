@@ -35,7 +35,7 @@
     render();
   }
   function render() {
-    ({ plans: renderPlans, items: renderItems, recipes: renderRecipes, groups: renderGroups, publish: renderPublish })[tab]();
+    ({ plans: renderPlans, items: renderItems, recipes: renderRecipes, prices: renderPrices, groups: renderGroups, publish: renderPublish })[tab]();
   }
 
   // ---------- reference options
@@ -247,6 +247,112 @@
     });
   }
 
+  // ---------- approved office prices (shown to every user as «قیمت مصوب دفتر نمایندگی»)
+  let pq = '';
+  let importRows = null;
+  const byCatName = (a, b) => Core.byCat(a[1], b[1]);
+
+  function renderPrices() {
+    data.prices = data.prices || {};
+    const el = $('#t-prices');
+    let h = `<div class="card"><p class="hint" style="margin:0 0 10px">این قیمت‌ها با علامت «✔ ${Core.OFFICIAL}» برای همه کاربران نمایش داده می‌شود. قیمت را برای یک بسته عمده وارد کنید (مثلاً باکس ۲۴ عددی). گزینه‌ای که دایره‌اش پر است، پیش‌فرض محاسبه کاربران است. بعد از تغییر، در زبانه «انتشار» دکمه انتشار را بزنید.</p>
+      <div class="toolbar"><input id="pqs" placeholder="🔍 جستجوی قلم…" value="${esc(pq)}" style="flex:1;min-width:160px"><button class="btn ghost" id="impOpen">📥 دریافت قیمت از پیام کاربر</button></div>
+      <div id="impBox"></div></div>`;
+    const items = Object.entries(data.items).sort(byCatName).filter(([, it]) => !pq || it.name.includes(pq));
+    for (const [id, it] of items) {
+      const p = data.prices[id] || { sel: 0, list: [] };
+      const bu = Core.buyUnitLabel(it.unit);
+      h += `<div class="card" data-pid="${esc(id)}" style="padding:12px 14px"><div class="dayhead"><b style="flex:1">${esc(it.name)}</b><small style="color:var(--muted)">${esc(it.cat || '')}</small><button class="mini" data-add>+ ${Core.BRAND}</button></div>`;
+      p.list.forEach((o, i) => {
+        const unitP = num(o.size) > 0 && num(o.price) > 0 ? `هر ${bu}: ${fa(Math.round(num(o.price) / num(o.size)))} دینار` : '';
+        h += `<div class="prow" data-i="${i}"><input type="radio" name="sel-${esc(id)}" ${i === p.sel ? 'checked' : ''} title="پیش‌فرض محاسبه">
+          <input class="pb" data-k="b" value="${esc(o.b || '')}" placeholder="ویژند (برند)">
+          <div class="suffix"><input data-k="size" inputmode="decimal" value="${num(o.size) ? o.size : ''}" placeholder="اندازه بسته"><em>${bu}</em></div>
+          <div class="suffix"><input data-k="price" inputmode="decimal" value="${num(o.price) ? o.price : ''}" placeholder="قیمت بسته"><em>دینار</em></div>
+          <button class="x" data-del>✕</button></div>
+          <div class="pinfo">${o.at ? `تاریخ قیمت: ${Core.jShort(o.at)}` : ''}${unitP ? ` — ${unitP}` : ''}</div>`;
+      });
+      h += '</div>';
+    }
+    el.innerHTML = h;
+    renderImport();
+
+    $('#pqs').oninput = (e) => { pq = e.target.value.trim(); const pos = e.target.selectionStart; renderPrices(); const n = $('#pqs'); n.focus(); n.setSelectionRange(pos, pos); };
+    $('#impOpen').onclick = () => { importRows = importRows ? null : []; renderImport(); };
+    $$('#t-prices [data-pid]').forEach((card) => {
+      const id = card.dataset.pid;
+      const get = () => (data.prices[id] = data.prices[id] || { sel: 0, list: [] });
+      $('[data-add]', card).onclick = () => { get().list.push({ b: '', size: '', price: '', at: new Date().toISOString() }); touch(); renderPrices(); };
+      $$('.prow', card).forEach((row) => {
+        const i = +row.dataset.i;
+        const o = get().list[i];
+        $('input[type=radio]', row).onchange = () => { get().sel = i; touch(); };
+        $$('[data-k]', row).forEach((inp) => (inp.onchange = () => {
+          const k = inp.dataset.k;
+          o[k] = k === 'b' ? inp.value.trim() : num(inp.value);
+          if (k !== 'b') o.at = new Date().toISOString();
+          touch();
+          renderPrices();
+        }));
+        $('[data-del]', row).onclick = () => {
+          const p = get();
+          p.list.splice(i, 1);
+          if (p.sel >= p.list.length) p.sel = 0;
+          if (!p.list.length) delete data.prices[id];
+          touch();
+          renderPrices();
+        };
+      });
+    });
+  }
+
+  // paste a message sent from a user's app; review the suggested prices and add the chosen ones
+  function renderImport() {
+    const box = $('#impBox');
+    if (!box) return;
+    if (importRows === null) { box.innerHTML = ''; return; }
+    if (!importRows.length) {
+      box.innerHTML = `<label class="field" style="margin-top:12px"><span>پیامی که کاربر فرستاده (همراه با کد #ASHP1) را اینجا بچسبانید</span><textarea id="impText" rows="4" dir="auto"></textarea></label>
+        <button class="btn" id="impRead">بررسی پیام</button>`;
+      $('#impRead').onclick = () => {
+        const d = Core.decodePrices($('#impText').value);
+        if (!d?.rows?.length) return toast('کد قیمت در این پیام پیدا نشد');
+        importRows = d.rows.filter((r) => data.items[r.i] && num(r.s) > 0 && num(r.p) > 0).map((r) => {
+          const cur = (data.prices?.[r.i]?.list || []).find((o) => (o.b || '') === (r.b || ''));
+          const changed = !cur || num(cur.size) !== num(r.s) || num(cur.price) !== num(r.p);
+          return { ...r, cur, changed, on: changed, from: d.from };
+        });
+        if (!importRows.length) { importRows = []; return toast('قیمت معتبری در پیام نبود'); }
+        renderImport();
+      };
+      return;
+    }
+    box.innerHTML = `<div style="margin-top:12px"><b>${importRows[0].from ? `پیشنهاد ${esc(importRows[0].from)}` : 'قیمت‌های پیشنهادی'}</b> — موارد تیک‌خورده به قیمت‌های مصوب اضافه یا جایگزین می‌شوند:</div>
+      ${importRows.map((r, k) => {
+        const it = data.items[r.i];
+        const note = !r.cur ? '<span class="pos">جدید</span>' : r.changed ? `<span class="neg">قبلی: بسته ${fa(r.cur.size, 3)} = ${fa(r.cur.price)} دینار</span>` : '<span style="color:var(--muted)">بدون تغییر</span>';
+        return `<label class="check"><input type="checkbox" data-k="${k}" ${r.on ? 'checked' : ''}><span><b>${esc(it.name)}</b>${r.b ? ` — ${esc(r.b)}` : ''}: بسته ${fa(r.s, 3)} ${Core.packAdj(it.unit)} = ${fa(r.p)} دینار<br><small>${note}</small></span></label>`;
+      }).join('')}
+      <div class="btn-row"><button class="btn" id="impApply">افزودن موارد انتخاب‌شده</button><button class="btn ghost" id="impCancel">انصراف</button></div>`;
+    $$('#impBox [data-k]').forEach((c) => (c.onchange = () => { importRows[+c.dataset.k].on = c.checked; }));
+    $('#impCancel').onclick = () => { importRows = null; renderImport(); };
+    $('#impApply').onclick = () => {
+      data.prices = data.prices || {};
+      let n = 0;
+      for (const r of importRows.filter((x) => x.on)) {
+        const p = (data.prices[r.i] = data.prices[r.i] || { sel: 0, list: [] });
+        const opt = { b: r.b || '', size: num(r.s), price: num(r.p), at: r.at || new Date().toISOString() };
+        const k = p.list.findIndex((o) => (o.b || '') === opt.b);
+        if (k >= 0) p.list[k] = opt; else p.list.push(opt);
+        n++;
+      }
+      importRows = null;
+      touch();
+      toast(`${fa(n)} قیمت اضافه شد. برای رسیدن به کاربران «انتشار» را بزنید.`);
+      renderPrices();
+    };
+  }
+
   // ---------- groups
   function renderGroups() {
     let h = `<div class="card"><p class="hint" style="margin:0 0 10px">سهم دورچین هر گروه به دلار، برای هر زائر در هر روز.</p>`;
@@ -279,6 +385,10 @@
       }
     });
     for (const r of Object.values(data.recipes)) for (const g of r.ing) if (!data.items[g.i]) errs.push(`دستور «${r.name}»: ماده حذف‌شده`);
+    for (const [id, p] of Object.entries(data.prices || {})) {
+      if (!data.items[id]) { errs.push('قیمت برای قلم حذف‌شده'); continue; }
+      for (const o of p.list) if (!(num(o.size) > 0 && num(o.price) > 0)) errs.push(`قیمت ناقص: ${data.items[id].name}${o.b ? ` (${o.b})` : ''}`);
+    }
     return errs;
   }
 

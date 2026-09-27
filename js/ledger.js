@@ -302,7 +302,7 @@ const Ledger = (() => {
   }
 
   function updatePricesFrom(e) {
-    const prices = A().prices;
+    const prices = A().localPrices;
     for (const l of e.lines) {
       if (!l.itemId || l.unit !== 'بسته' || !(num(l.size) > 0) || !(num(l.price) > 0)) continue;
       const p = Core.normPrice(prices[l.itemId]) || { sel: 0, list: [] };

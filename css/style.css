@@ -186,6 +186,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--brand); }
 .pos { color: var(--ok); font-weight: 700; }
 .neg { color: var(--bad); font-weight: 700; }
 
+.badge { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; font-weight: 600; white-space: nowrap; vertical-align: middle; }
+.badge.off { background: var(--ok-soft); color: var(--ok); }
+.badge.own { background: var(--accent-soft); color: var(--accent); }
+
 .search { margin-bottom: 12px; }
 .toggle { display: flex; background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 4px; margin-bottom: 12px; }
 .toggle button { flex: 1; border: 0; background: none; min-height: 42px; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--muted); }

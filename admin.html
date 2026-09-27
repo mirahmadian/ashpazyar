@@ -38,6 +38,13 @@
     .irow { display: grid; grid-template-columns: 1fr 110px 130px 40px; gap: 6px; margin-bottom: 6px; }
     .irow input, .irow select { min-height: 42px; padding: 4px 8px; font-size: 15px; }
     @media (max-width: 560px) { .irow { grid-template-columns: 1fr 1fr; } .ehead { display: none; } .erow { grid-template-columns: 1fr 1fr 40px; padding-bottom: 6px; border-bottom: 1px dashed var(--line); } .erow select { grid-column: 1 / -1; } }
+    .prow { display: grid; grid-template-columns: 28px 1.3fr 1fr 1.2fr 40px; gap: 6px; align-items: center; margin-top: 8px; }
+    .prow input { min-height: 42px; padding: 4px 8px; font-size: 15px; }
+    .prow input[type=radio] { min-height: 0; width: 20px; height: 20px; }
+    .prow .suffix input { padding-left: 46px; }
+    .prow .suffix em { font-size: 11px; left: 6px; }
+    .pinfo { font-size: 12px; color: var(--muted); padding-right: 34px; }
+    @media (max-width: 560px) { .prow { grid-template-columns: 24px 1fr 1fr 36px; } .prow .pb { grid-column: 2 / 4; } }
     .dirty { display: none; background: var(--accent-soft); color: var(--accent); padding: 10px 14px; border-radius: 12px; margin-bottom: 12px; }
     .dirty.on { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
     code { background: var(--bg); padding: 1px 6px; border-radius: 6px; direction: ltr; display: inline-block; }
@@ -50,6 +57,7 @@
     <button data-t="plans" class="on">برنامه‌ها</button>
     <button data-t="items">اقلام</button>
     <button data-t="recipes">دستور پخت</button>
+    <button data-t="prices">قیمت‌های مصوب</button>
     <button data-t="groups">گروه هتل‌ها</button>
     <button data-t="publish">انتشار</button>
   </div>
@@ -58,6 +66,7 @@
     <section class="ascreen on" id="t-plans"></section>
     <section class="ascreen" id="t-items"></section>
     <section class="ascreen" id="t-recipes"></section>
+    <section class="ascreen" id="t-prices"></section>
     <section class="ascreen" id="t-groups"></section>
     <section class="ascreen" id="t-publish"></section>
   </main>

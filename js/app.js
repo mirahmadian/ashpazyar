@@ -2,11 +2,13 @@
   const { fa, num, money, qtyText, esc, store, buyFactor, buyUnitLabel, isWeight, isVolume } = Core;
   const $ = (s) => document.querySelector(s);
 
-  const K = { data: 'ash.data', settings: 'ash.settings', prices: 'ash.prices', stock: 'ash.stock', history: 'ash.history' };
+  const K = { data: 'ash.data', settings: 'ash.settings', prices: 'ash.prices', priceSel: 'ash.priceSel', stock: 'ash.stock', history: 'ash.history' };
   let data = store.get(K.data, null);
   const settings = Object.assign({ group: null, planId: null, days: [], pilgrims: 50, rate: '' }, store.get(K.settings, {}));
   // migrate the old single-price shape to the brand (ویژند) list shape
   let prices = Object.fromEntries(Object.entries(store.get(K.prices, {})).map(([k, v]) => [k, Core.normPrice(v)]).filter(([, v]) => v));
+  // which price option the user picked per item: { src: 'o' (office) | 'l' (own), b: brand }
+  let priceSel = store.get(K.priceSel, {});
   let stock = store.get(K.stock, {});
   let history = store.get(K.history, []);
   let lastResult = null;
@@ -193,7 +195,7 @@
   // ---------- result
   function runCalc() {
     const plan = currentPlan();
-    lastResult = Core.calculate({ data, plan, dayIdxs: settings.days, pilgrims: settings.pilgrims, prices, stock, rate: settings.rate, groupId: settings.group });
+    lastResult = Core.calculate({ data, plan, dayIdxs: settings.days, pilgrims: settings.pilgrims, prices: effAll(), stock, rate: settings.rate, groupId: settings.group });
     lastResult.plan = plan;
     lastResult.recipes = Core.recipeTotals(data, plan, settings.days, settings.pilgrims);
     renderResult();
@@ -366,28 +368,43 @@
   }
   window.addEventListener('afterprint', () => document.body.classList.remove('printing'));
 
+  // ---------- effective prices = approved office prices (data/menus.json) + the user's own prices
+  function effPrice(id) {
+    const off = Core.normPrice(data?.prices?.[id]);
+    const loc = Core.normPrice(prices[id]);
+    const valid = (o) => num(o.size) > 0 && num(o.price) > 0;
+    const list = [...(off?.list || []).filter(valid).map((o) => ({ ...o, src: 'o' })), ...(loc?.list || []).filter(valid).map((o) => ({ ...o, src: 'l' }))];
+    if (!list.length) return null;
+    const find = (src, b) => list.findIndex((o) => o.src === src && o.b === b);
+    let sel = priceSel[id] ? find(priceSel[id].src, priceSel[id].b) : -1;
+    if (sel < 0 && loc?.list[loc.sel]) sel = find('l', loc.list[loc.sel].b);
+    if (sel < 0 && off?.list[off.sel]) sel = find('o', off.list[off.sel].b);
+    return { sel: Math.max(0, sel), list };
+  }
+  const effAll = () => Object.fromEntries(Object.keys(data?.items || {}).map((id) => [id, effPrice(id)]).filter(([, v]) => v));
+  const srcBadge = (o) => (o.src === 'o' ? `<span class="badge off">✔ ${Core.OFFICIAL}</span>` : '<span class="badge own">قیمت خودم</span>');
+
   // A4 price list: every item, each brand (ویژند) option on its own row; the table header repeats on each page
   $('#printPrices').onclick = () => {
     const list = itemList('all', '');
     let n = 0, priced = 0;
     const bodies = list.map((it) => {
-      const p = Core.normPrice(prices[it.id]);
-      const opts = p ? p.list.filter((o) => num(o.size) > 0 && num(o.price) > 0) : [];
+      const p = effPrice(it.id);
+      const opts = p ? p.list : [];
       if (opts.length) priced++;
       n++;
       const bu = buyUnitLabel(it.unit);
       const head = (span) => `<td class="c" rowspan="${span}">${fa(n)}</td><td rowspan="${span}">${esc(it.name)}</td><td rowspan="${span}">${esc(it.cat || 'سایر')}</td>`;
       if (!opts.length) return `<tbody class="${n % 2 ? '' : 'alt'}"><tr>${head(1)}<td>—</td><td>—</td><td class="n">—</td><td class="n">—</td><td class="c">—</td></tr></tbody>`;
-      const selected = Core.pickPrice(p);
       return `<tbody class="${n % 2 ? '' : 'alt'}">` + opts.map((o, i) => `<tr>${i === 0 ? head(opts.length) : ''}
-        <td>${opts.length > 1 && o === selected ? '✓ ' : ''}${esc(o.b || '—')}</td>
+        <td>${opts.length > 1 && i === p.sel ? '✓ ' : ''}${esc(o.b || '—')}${o.src === 'o' ? ' <small>(مصوب)</small>' : ''}</td>
         <td>بسته ${fa(o.size, 3)} ${Core.packAdj(it.unit)}</td>
         <td class="n">${fa(o.price)}</td>
         <td class="n">${fa(Math.round(num(o.price) / num(o.size)))} <small>/ ${bu}</small></td>
         <td class="c">${o.at ? Core.jShort(o.at) : '—'}</td></tr>`).join('') + '</tbody>';
     }).join('');
     printDoc(`<h1>فهرست قیمت اقلام دورچین — آشپزیار</h1>
-      <p class="pmeta">تاریخ چاپ: ${Core.jText(Core.todayISO())} — ${fa(list.length)} قلم، ${fa(priced)} قلم با قیمت — مبالغ به دینار — ✓ = ${Core.BRAND_TXT} انتخاب‌شده برای محاسبه</p>
+      <p class="pmeta">تاریخ چاپ: ${Core.jText(Core.todayISO())} — ${fa(list.length)} قلم، ${fa(priced)} قلم با قیمت — مبالغ به دینار — ✓ = انتخاب‌شده برای محاسبه — (مصوب) = ${Core.OFFICIAL}</p>
       <table>
         <colgroup><col style="width:5%"><col style="width:19%"><col style="width:12%"><col style="width:13%"><col style="width:14%"><col style="width:11%"><col style="width:13%"><col style="width:13%"></colgroup>
         <thead><tr><th>ردیف</th><th>نام قلم</th><th>دسته</th><th>${Core.BRAND}</th><th>بسته‌بندی</th><th>قیمت بسته</th><th>قیمت واحد</th><th>تاریخ قیمت</th></tr></thead>
@@ -414,18 +431,22 @@
 
   function priceMeta(id) {
     const it = data.items[id];
-    const p = Core.normPrice(prices[id]);
-    const o = Core.pickPrice(p);
-    if (!o) return null;
+    const p = effPrice(id);
+    if (!p) return null;
+    const o = p.list[p.sel];
     const bu = buyUnitLabel(it.unit);
-    const more = p.list.length > 1 ? ` <span class="buy">(+${fa(p.list.length - 1)} ویژند دیگر)</span>` : '';
-    return `${o.b ? `<b>${esc(o.b)}</b> — ` : ''}بسته ${fa(o.size, 3)} ${Core.packAdj(it.unit)}: ${money(o.price)} — هر ${bu}: <b>${money(num(o.price) / num(o.size))}</b>${more}`;
+    const more = p.list.length > 1 ? ` <span class="buy">(+${fa(p.list.length - 1)} قیمت دیگر)</span>` : '';
+    return `${srcBadge(o)} ${o.b ? `<b>${esc(o.b)}</b> — ` : ''}بسته ${fa(o.size, 3)} ${Core.packAdj(it.unit)}: ${money(o.price)} — هر ${bu}: <b>${money(num(o.price) / num(o.size))}</b>${more}`;
   }
+
+  const ownPriceCount = () => Object.values(prices).reduce((s, p) => s + (p?.list?.length || 0), 0);
 
   function renderPrices() {
     if (!data) return;
     const list = itemList(priceScope, $('#priceSearch').value.trim());
-    let html = '', cat = null;
+    const own = ownPriceCount();
+    let html = own ? `<button class="btn warn" id="sendPrices" style="margin-bottom:12px">📤 ارسال قیمت‌های خودم برای دفتر نمایندگی (${fa(own)} قیمت)</button>` : '';
+    let cat = null;
     for (const it of list) {
       if (it.cat !== cat) { cat = it.cat; html += `<div class="cat-title">${esc(cat || 'سایر')}</div>`; }
       const m = priceMeta(it.id);
@@ -433,46 +454,75 @@
     }
     $('#priceList').innerHTML = html || '<div class="empty">موردی پیدا نشد.</div>';
     $('#priceList').querySelectorAll('.row').forEach((el) => (el.onclick = () => openPriceSheet(el.dataset.id, renderPrices)));
+    $('#sendPrices')?.addEventListener('click', sendPrices);
   }
 
-  const allBrands = () => [...new Set(Object.values(prices).flatMap((p) => p.list.map((o) => o.b)).filter(Boolean))].sort((x, y) => x.localeCompare(y, 'fa'));
+  // the user's own prices go to the office as a readable message plus a code the admin panel can import
+  async function sendPrices() {
+    const who = prompt('نام شما یا نام کاروان/هتل (اختیاری):', settings.sender || '');
+    if (who === null) return;
+    settings.sender = who.trim();
+    saveSettings();
+    const rows = [];
+    let text = `📤 قیمت‌های پیشنهادی برای دفتر نمایندگی — آشپزیار\n${settings.sender ? `فرستنده: ${settings.sender}\n` : ''}تاریخ: ${Core.jText(Core.todayISO())}\n\n`;
+    for (const [id, p] of Object.entries(prices)) {
+      const it = data.items[id];
+      if (!it) continue;
+      for (const o of p.list) {
+        rows.push({ i: id, b: o.b, s: num(o.size), p: num(o.price), at: o.at });
+        text += `▫️ ${it.name}${o.b ? ` — ${o.b}` : ''}: بسته ${fa(o.size, 3)} ${Core.packAdj(it.unit)} = ${money(o.price)}\n`;
+      }
+    }
+    if (!rows.length) return toast('قیمتی برای ارسال ندارید');
+    text += `\nکد زیر مخصوص پنل دفتر نمایندگی است:\n${Core.encodePrices({ from: settings.sender, rows })}`;
+    if (navigator.share) {
+      try { await navigator.share({ text }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    }
+    try { await navigator.clipboard.writeText(text); toast('متن کپی شد؛ در پیام‌رسان برای دفتر نمایندگی بفرستید'); }
+    catch { window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank'); }
+  }
 
-  // one item can have several brand (ویژند) options; the selected one is used in calculations
+  const allBrands = () => [...new Set(Object.values(effAll()).flatMap((p) => p.list.map((o) => o.b)).filter(Boolean))].sort((x, y) => x.localeCompare(y, 'fa'));
+
+  // office prices (read only) and the user's own prices side by side; the picked one is used in calculations
   function openPriceSheet(id, after) {
     const it = data.items[id];
     const bu = buyUnitLabel(it.unit);
-    const p = structuredClone(Core.normPrice(prices[id]) || { sel: 0, list: [] });
+    const loc = structuredClone(Core.normPrice(prices[id]) || { sel: 0, list: [] });
     const persist = () => {
-      if (p.list.length) prices[id] = p; else delete prices[id];
+      if (loc.list.length) prices[id] = loc; else delete prices[id];
       store.set(K.prices, prices);
+      store.set(K.priceSel, priceSel);
       after?.();
     };
 
     const listView = () => {
-      if (!p.list.length) return formView(-1);
+      const ep = effPrice(id);
+      if (!ep) return formView(-1);
       openSheet(`<h3>${esc(it.name)}</h3>
-        <p class="hint" style="margin:-6px 0 12px">برای هر ${Core.BRAND} قیمت جدا ثبت کنید. گزینه انتخاب‌شده در محاسبه خرید استفاده می‌شود؛ برای انتخاب، روی آن بزنید.</p>
-        ${p.list.map((o, i) => `<div class="opt ${i === p.sel ? 'on' : ''}" data-i="${i}"><span class="dot"></span>
-          <span style="flex:1"><b>${esc(o.b || 'بدون نام')}</b><br><small style="color:var(--muted)">بسته ${fa(o.size, 3)} ${Core.packAdj(it.unit)}: ${money(o.price)} — هر ${bu}: ${money(num(o.price) / num(o.size))}</small></span>
-          <button class="mini" data-edit="${i}">✎ ویرایش</button></div>`).join('')}
-        <button class="btn ghost" id="pAdd">+ افزودن ${Core.BRAND} دیگر</button>
+        <p class="hint" style="margin:-6px 0 12px">قیمتی که انتخاب شده در محاسبه خرید استفاده می‌شود؛ برای انتخاب، روی آن بزنید.</p>
+        ${ep.list.map((o, i) => `<div class="opt ${i === ep.sel ? 'on' : ''}" data-i="${i}"><span class="dot"></span>
+          <span style="flex:1"><b>${esc(o.b || 'بدون نام ویژند')}</b> ${srcBadge(o)}<br><small style="color:var(--muted)">بسته ${fa(o.size, 3)} ${Core.packAdj(it.unit)}: ${money(o.price)} — هر ${bu}: ${money(num(o.price) / num(o.size))}${o.at ? ` — ${Core.jShort(o.at)}` : ''}</small></span>
+          ${o.src === 'l' ? `<button class="mini" data-edit="${loc.list.findIndex((x) => x.b === o.b)}">✎ ویرایش</button>` : ''}</div>`).join('')}
+        <button class="btn ghost" id="pAdd">+ ثبت قیمت خودم</button>
         <button class="btn" id="pDone" style="margin-top:10px">تمام</button>`);
       document.querySelectorAll('#sheet .opt').forEach((el) => (el.onclick = (e) => {
         const ed = e.target.closest('[data-edit]');
         if (ed) return formView(+ed.dataset.edit);
-        p.sel = +el.dataset.i;
+        const o = ep.list[+el.dataset.i];
+        priceSel[id] = { src: o.src, b: o.b };
         persist();
         listView();
-        toast('این ویژند برای محاسبه انتخاب شد');
+        toast('این قیمت برای محاسبه انتخاب شد');
       }));
       $('#pAdd').onclick = () => formView(-1);
       $('#pDone').onclick = closeSheet;
     };
 
     const formView = (i) => {
-      const o = i >= 0 ? p.list[i] : { b: '', size: '', price: '' };
+      const o = i >= 0 ? loc.list[i] : { b: '', size: '', price: '' };
       const example = isWeight(it.unit) ? 'مثلاً کیسه ۱۰ کیلویی ← بنویسید ۱۰' : isVolume(it.unit) ? 'مثلاً گالن ۴ لیتری ← بنویسید ۴' : 'مثلاً باکس ۳۰ عددی ← بنویسید ۳۰';
-      openSheet(`<h3>${esc(it.name)}</h3>
+      openSheet(`<h3>${esc(it.name)} — قیمت خودم</h3>
         <label class="field"><span>${Core.BRAND} <small>(اختیاری — مثلاً کاله، پگاه، کوکاکولا)</small></span>
           <input id="pBrand" list="brandList" value="${esc(o.b)}" placeholder="نام ویژند"></label>
         <datalist id="brandList">${allBrands().map((b) => `<option value="${esc(b)}">`).join('')}</datalist>
@@ -483,7 +533,7 @@
         <div class="calc" id="pCalc">—</div>
         <button class="btn" id="pSave">ذخیره قیمت</button>
         ${i >= 0 ? '<button class="link" style="width:100%;color:var(--bad)" id="pDel">حذف این قیمت</button>' : ''}
-        ${p.list.length ? `<button class="link" style="width:100%" id="pBack">← بازگشت به فهرست ویژندها</button>` : ''}`);
+        ${effPrice(id) ? `<button class="link" style="width:100%" id="pBack">← بازگشت به فهرست قیمت‌ها</button>` : ''}`);
       const upd = () => {
         const sz = num($('#pSize').value), pr = num($('#pPrice').value);
         $('#pCalc').textContent = sz > 0 && pr > 0 ? `قیمت هر ${bu}: ${money(pr / sz)}` : 'اندازه و قیمت بسته را بنویسید';
@@ -496,23 +546,26 @@
         const sz = num($('#pSize').value), pr = num($('#pPrice').value);
         if (!(sz > 0 && pr > 0)) return toast('اندازه و قیمت را کامل بنویسید');
         const opt = { b: $('#pBrand').value.trim(), size: sz, price: pr, at: new Date().toISOString() };
-        // entering a brand that already exists replaces its older price
-        const same = p.list.findIndex((x, k) => k !== i && x.b === opt.b);
+        // the same brand entered twice replaces the older own price
+        const same = loc.list.findIndex((x, k) => k !== i && x.b === opt.b);
         if (i >= 0) {
-          p.list[i] = opt;
-          if (same >= 0) { p.list.splice(same, 1); if (p.sel === same) p.sel = same < i ? i - 1 : i; else if (p.sel > same) p.sel--; }
-        } else if (same >= 0) p.list[same] = opt;
-        else { p.list.push(opt); if (p.list.length === 1) p.sel = 0; }
+          loc.list[i] = opt;
+          if (same >= 0) loc.list.splice(same, 1);
+        } else if (same >= 0) loc.list[same] = opt;
+        else loc.list.push(opt);
+        loc.sel = Math.max(0, loc.list.findIndex((x) => x.b === opt.b));
+        priceSel[id] = { src: 'l', b: opt.b };
         persist();
-        toast('قیمت ذخیره شد');
-        if (p.list.length > 1) listView(); else closeSheet();
+        toast('قیمت ذخیره شد و برای محاسبه انتخاب شد');
+        if (effPrice(id).list.length > 1) listView(); else closeSheet();
       };
       const del = $('#pDel');
       if (del) del.onclick = () => {
-        p.list.splice(i, 1);
-        if (p.sel === i) p.sel = 0; else if (p.sel > i) p.sel--;
+        const removed = loc.list.splice(i, 1)[0];
+        loc.sel = 0;
+        if (priceSel[id]?.src === 'l' && priceSel[id].b === removed.b) delete priceSel[id];
         persist();
-        if (p.list.length) listView(); else closeSheet();
+        if (effPrice(id)) listView(); else closeSheet();
       };
       const back = $('#pBack');
       if (back) back.onclick = listView;
@@ -602,7 +655,7 @@
 
   $('#backupBtn').onclick = async () => {
     const ledger = store.get('ash.ledger', null);
-    const blob = new Blob([JSON.stringify({ app: 'ashpazyar', at: new Date().toISOString(), settings, prices, stock, history, ledger }, null, 1)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ app: 'ashpazyar', at: new Date().toISOString(), settings, prices, priceSel, stock, history, ledger }, null, 1)], { type: 'application/json' });
     store.set('ash.lastBackup', new Date().toISOString());
     const name = `ashpazyar-backup-${new Date().toISOString().slice(0, 10)}.json`;
     const file = new File([blob], name, { type: 'application/json' });
@@ -625,7 +678,8 @@
       if (!confirm('اطلاعات فعلی این گوشی با فایل پشتیبان جایگزین شود؟')) return;
       prices = Object.fromEntries(Object.entries(b.prices || {}).map(([k, v]) => [k, Core.normPrice(v)]).filter(([, v]) => v)); stock = b.stock || {}; history = b.history || [];
       Object.assign(settings, b.settings || {});
-      store.set(K.prices, prices); store.set(K.stock, stock); store.set(K.history, history); saveSettings();
+      priceSel = b.priceSel || {};
+      store.set(K.prices, prices); store.set(K.priceSel, priceSel); store.set(K.stock, stock); store.set(K.history, history); saveSettings();
       if (b.ledger) store.set('ash.ledger', b.ledger);
       toast('اطلاعات بازگردانی شد ✅');
       location.reload();
@@ -636,7 +690,8 @@
   // ---------- shared with the ledger module (js/ledger.js)
   window.App = {
     get data() { return data; },
-    get prices() { return prices; },
+    get prices() { return effAll(); },
+    get localPrices() { return prices; },
     savePrices() { store.set(K.prices, prices); },
     get settings() { return settings; },
     toast, openSheet, closeSheet, printDoc, allBrands, show,

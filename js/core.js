@@ -52,6 +52,24 @@ const Core = (() => {
   }
   const BRAND = 'ویژند <small class="brand-en">(برند)</small>';
   const BRAND_TXT = 'ویژند (برند)';
+  const OFFICIAL = 'قیمت مصوب دفتر نمایندگی';
+
+  // share code for prices sent from a user to the office: '#ASHP1:' + base64(UTF-8 JSON)
+  const PRICE_CODE = '#ASHP1:';
+  function encodePrices(list) {
+    const bytes = new TextEncoder().encode(JSON.stringify(list));
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return PRICE_CODE + btoa(bin);
+  }
+  function decodePrices(text) {
+    const m = String(text).match(/#ASHP1:([A-Za-z0-9+/=\s]+)/);
+    if (!m) return null;
+    try {
+      const bin = atob(m[1].replace(/\s+/g, ''));
+      return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0))));
+    } catch { return null; }
+  }
 
   // ---------- Jalali (Persian) calendar; dates are stored as local 'YYYY-MM-DD' (Gregorian)
   function g2j(gy, gm, gd) {
@@ -211,5 +229,5 @@ const Core = (() => {
     } catch { return iso.slice(0, 7); }
   };
 
-  return { MEALS, byCat, normPrice, pickPrice, BRAND, BRAND_TXT, g2j, j2g, todayISO, isoToJ, jToIso, jMonthLen, J_MONTHS, jText, jShort, faN, isWeight, isVolume, buyFactor, buyUnitLabel, packAdj, fa, num, toEnDigits, money, qtyText, perPersonNeeds, calculate, recipeTotals, entryLabel, store, esc, faDate, faMonthKey };
+  return { MEALS, byCat, normPrice, pickPrice, BRAND, BRAND_TXT, OFFICIAL, encodePrices, decodePrices, g2j, j2g, todayISO, isoToJ, jToIso, jMonthLen, J_MONTHS, jText, jShort, faN, isWeight, isVolume, buyFactor, buyUnitLabel, packAdj, fa, num, toEnDigits, money, qtyText, perPersonNeeds, calculate, recipeTotals, entryLabel, store, esc, faDate, faMonthKey };
 })();
