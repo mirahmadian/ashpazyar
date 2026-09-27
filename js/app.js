@@ -349,8 +349,38 @@
   document.querySelectorAll('#priceScope button').forEach((b) => (b.onclick = () => {
     priceScope = b.dataset.s;
     document.querySelectorAll('#priceScope button').forEach((x) => x.classList.toggle('on', x === b));
+    $('#printPrices').style.display = priceScope === 'all' ? '' : 'none';
     renderPrices();
   }));
+
+  // A4 price list: every item with its packaging and price; the table header repeats on each page
+  $('#printPrices').onclick = () => {
+    const list = itemList('all', '');
+    const rows = list.map((it, i) => {
+      const p = prices[it.id];
+      const has = p && num(p.size) > 0 && num(p.price) > 0;
+      const bu = buyUnitLabel(it.unit);
+      return `<tr>
+        <td class="c">${fa(i + 1)}</td>
+        <td>${esc(it.name)}</td>
+        <td>${esc(it.cat || 'سایر')}</td>
+        <td>${has ? `بسته ${fa(p.size, 3)} ${Core.packAdj(it.unit)}` : '—'}</td>
+        <td class="n">${has ? fa(p.price) : '—'}</td>
+        <td class="n">${has ? `${fa(Math.round(num(p.price) / num(p.size)))} <small>/ ${bu}</small>` : '—'}</td>
+        <td class="c">${has && p.at ? Core.faDate(p.at, { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—'}</td></tr>`;
+    }).join('');
+    const priced = list.filter((it) => prices[it.id] && num(prices[it.id].price) > 0).length;
+    $('#printArea').innerHTML = `<h1>فهرست قیمت اقلام دورچین — آشپزیار</h1>
+      <p class="pmeta">تاریخ چاپ: ${Core.faDate(new Date().toISOString())} — ${fa(list.length)} قلم، ${fa(priced)} قلم با قیمت — مبالغ به دینار</p>
+      <table>
+        <colgroup><col style="width:6%"><col style="width:26%"><col style="width:13%"><col style="width:17%"><col style="width:12%"><col style="width:13%"><col style="width:13%"></colgroup>
+        <thead><tr><th>ردیف</th><th>نام قلم</th><th>دسته</th><th>بسته‌بندی</th><th>قیمت بسته</th><th>قیمت واحد</th><th>تاریخ قیمت</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    document.body.classList.add('printing-prices');
+    window.print();
+  };
+  window.addEventListener('afterprint', () => document.body.classList.remove('printing-prices'));
   $('#priceSearch').oninput = () => renderPrices();
 
   function planItemIds() {
