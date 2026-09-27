@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 27,
- "updated": "2026-09-27T14:39:52.173Z",
+ "version": 28,
+ "updated": "2026-09-27T14:45:23.100Z",
  "groups": [
   {
    "id": "1b",
@@ -87,7 +87,7 @@ window.ASH_DATA = {
   },
   "tea": {
    "name": "چای خشک",
-   "unit": "عدد",
+   "unit": "g",
    "cat": "نوشیدنی"
   },
   "teabag": {
