@@ -161,6 +161,31 @@ input:focus, select:focus, textarea:focus { border-color: var(--brand); }
 .stockrow .suffix { width: 140px; flex: none; }
 .stockrow input { min-height: 46px; }
 
+.brand-en { font-size: 78%; font-weight: 400; opacity: .8; }
+.mini { border: 0; background: var(--brand-soft); color: var(--brand); border-radius: 10px; min-height: 40px; padding: 0 12px; cursor: pointer; font-weight: 600; font-family: inherit; }
+.mini.red { background: var(--bad-soft); color: var(--bad); }
+
+/* ledger */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+.grid2btn { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid2btn .btn { font-size: 16px; min-height: 52px; }
+.flabel { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+.datepick { display: grid; grid-template-columns: 1fr 1.6fr 1.2fr; gap: 6px; }
+.datepick select { min-height: 48px; padding: 4px 8px; }
+.line { border: 1px solid var(--line); border-radius: 12px; padding: 8px; margin-bottom: 8px; display: grid; gap: 6px; }
+.line input, .line select { min-height: 44px; padding: 4px 10px; }
+.line-top { display: flex; gap: 6px; }
+.line-top input { flex: 1; font-weight: 700; }
+.line-grid { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 6px; }
+.line-head { font-size: 12px; color: var(--muted); margin-bottom: -4px; }
+.line-sum { font-size: 13px; color: var(--brand); font-weight: 700; }
+.x { border: 0; background: var(--bad-soft); color: var(--bad); border-radius: 10px; min-width: 44px; cursor: pointer; font-size: 18px; }
+.kv { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+.kv:last-child { border-bottom: 0; }
+.kv b { text-align: left; white-space: nowrap; }
+.pos { color: var(--ok); font-weight: 700; }
+.neg { color: var(--bad); font-weight: 700; }
+
 .search { margin-bottom: 12px; }
 .toggle { display: flex; background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 4px; margin-bottom: 12px; }
 .toggle button { flex: 1; border: 0; background: none; min-height: 42px; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--muted); }
@@ -187,12 +212,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--brand); }
 nav.tabs {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
   background: var(--card); border-top: 1px solid var(--line);
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(5, 1fr);
   padding-bottom: env(safe-area-inset-bottom);
 }
 nav.tabs button {
   border: 0; background: none; padding: 8px 2px 10px; cursor: pointer; color: var(--muted);
-  display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 13px; font-weight: 600; min-height: 64px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; font-weight: 600; min-height: 64px;
 }
 nav.tabs button svg { width: 26px; height: 26px; }
 nav.tabs button.on { color: var(--brand); }
@@ -231,17 +256,20 @@ nav.tabs button.on { color: var(--brand); }
 
 @media print {
   @page { size: A4 portrait; margin: 12mm 10mm; }
-  body.printing-prices > *:not(#printArea) { display: none !important; }
-  body.printing-prices #printArea { display: block; }
+  body.printing > *:not(#printArea) { display: none !important; }
+  body.printing #printArea { display: block; }
   #printArea { font-size: 10.5pt; line-height: 1.35; color: #000; }
   #printArea h1 { font-size: 15pt; margin: 0 0 2mm; text-align: center; }
   #printArea .pmeta { text-align: center; margin: 0 0 4mm; font-size: 9.5pt; }
   #printArea table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   #printArea thead { display: table-header-group; }
   #printArea tr { break-inside: avoid; page-break-inside: avoid; }
-  #printArea th, #printArea td { border: 0.6pt solid #555; padding: 1.3mm 1.6mm; text-align: right; vertical-align: middle; overflow-wrap: anywhere; }
+  #printArea th, #printArea td { border: 0.6pt solid #555; padding: 1.3mm 1.6mm; text-align: right; vertical-align: middle; overflow-wrap: break-word; }
   #printArea th { background: #e6e6e6 !important; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  #printArea tbody tr:nth-child(even) td { background: #f5f5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #printArea tbody { break-inside: avoid; page-break-inside: avoid; }
+  #printArea tbody.alt td { background: #f5f5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #printArea h2 { font-size: 12pt; margin: 6mm 0 2mm; }
+  #printArea .brand-en { font-size: 75%; font-weight: 400; }
   #printArea th, #printArea td.c { text-align: center; white-space: nowrap; }
   #printArea td.n { text-align: center; white-space: nowrap; }
   #printArea small { font-size: 8pt; }

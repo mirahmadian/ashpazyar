@@ -94,6 +94,9 @@
       <button class="btn danger" id="clearStock" style="margin-top:12px">صفر کردن همه موجودی‌ها</button>
     </section>
 
+    <!-- LEDGER -->
+    <section class="screen" id="scr-ledger"></section>
+
     <!-- HISTORY -->
     <section class="screen" id="scr-history">
       <div id="historyList"></div>
@@ -122,6 +125,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>
       موجودی
     </button>
+    <button data-tab="ledger">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+      مالی
+    </button>
     <button data-tab="history">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
       سابقه
@@ -136,5 +143,6 @@
   <script src="data/menus.js"></script>
   <script src="js/core.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/ledger.js"></script>
 </body>
 </html>

@@ -5,7 +5,8 @@
   const K = { data: 'ash.data', settings: 'ash.settings', prices: 'ash.prices', stock: 'ash.stock', history: 'ash.history' };
   let data = store.get(K.data, null);
   const settings = Object.assign({ group: null, planId: null, days: [], pilgrims: 50, rate: '' }, store.get(K.settings, {}));
-  let prices = store.get(K.prices, {});
+  // migrate the old single-price shape to the brand (ویژند) list shape
+  let prices = Object.fromEntries(Object.entries(store.get(K.prices, {})).map(([k, v]) => [k, Core.normPrice(v)]).filter(([, v]) => v));
   let stock = store.get(K.stock, {});
   let history = store.get(K.history, []);
   let lastResult = null;
@@ -40,6 +41,7 @@
     prices: ['قیمت اقلام', 'قیمت خرید عمده را وارد کنید'],
     stock: ['موجودی انبار', 'آنچه از قبل دارید'],
     history: ['سابقه خریدها', 'هزینه‌های ثبت‌شده روی این گوشی'],
+    ledger: ['دفتر مالی', 'فاکتورها، پرداخت‌ها، دریافت‌ها و گزارش'],
   };
   let current = 'calc';
   function show(name, sub) {
@@ -56,6 +58,7 @@
     if (name === 'prices') renderPrices();
     if (name === 'stock') renderStock();
     if (name === 'history') renderHistory();
+    if (name === 'ledger') window.Ledger?.render();
   }
   function openSub(name, sub) {
     history_push();
@@ -202,7 +205,7 @@
     const meta = [`لازم: <b>${qtyText(r.need, r.unit)}</b>`];
     if (r.stock > 0) meta.push(`موجودی: ${qtyText(r.stock, r.unit)}`);
     if (r.toBuy <= 0) meta.push('<span class="buy">✔ نیازی به خرید نیست</span>');
-    else if (hasPrice) meta.push(`<span class="buy">بخرید: ${fa(r.packs)} بسته ${fa(r.packSize, 2)} ${Core.packAdj(r.unit)}</span>`);
+    else if (hasPrice) meta.push(`<span class="buy">بخرید: ${fa(r.packs)} بسته ${fa(r.packSize, 2)} ${Core.packAdj(r.unit)}${r.brand ? ` — ${esc(r.brand)}` : ''}</span>`);
     else if (r.stock > 0) meta.push(`<span class="buy">بخرید: ${qtyText(r.toBuy, r.unit)}</span>`);
     return `<div class="row ${hasPrice ? '' : 'nop'} tap" data-id="${esc(r.id)}">
       <div class="top"><span class="name">${esc(r.name)}</span><span class="cost">${hasPrice ? money(r.useCost) : 'قیمت ندارد ✎'}</span></div>
@@ -252,6 +255,7 @@
 
     html += `<div class="no-print" style="margin-top:16px">
       <button class="btn" id="saveBtn">💾 ثبت در سابقه</button>
+      <button class="btn ghost" id="invoiceBtn" style="margin-top:10px">🧾 ثبت فاکتور خرید از این فهرست</button>
       <div class="btn-row">
         <button class="btn ghost" id="shareBtn">📲 ارسال فهرست</button>
         <button class="btn ghost" id="printBtn">🖨 چاپ</button>
@@ -262,6 +266,7 @@
     $('#saveBtn').onclick = openSaveSheet;
     $('#shareBtn').onclick = shareList;
     $('#printBtn').onclick = () => window.print();
+    $('#invoiceBtn').onclick = () => window.Ledger?.invoiceFromResult(lastResult);
   }
 
   function listText() {
@@ -270,7 +275,7 @@
     let t = `🧾 فهرست خرید دورچین\n${R.plan.name}\n${days}\nتعداد زائر: ${fa(settings.pilgrims)}\n\n`;
     for (const r of R.rows) {
       if (r.asNeeded || r.toBuy <= 0) continue;
-      t += `▫️ ${r.name}: ${r.packs != null ? `${fa(r.packs)} بسته (${qtyText(r.toBuy, r.unit)})` : qtyText(r.toBuy, r.unit)}\n`;
+      t += `▫️ ${r.name}${r.brand ? ` (${r.brand})` : ''}: ${r.packs != null ? `${fa(r.packs)} بسته (${qtyText(r.toBuy, r.unit)})` : qtyText(r.toBuy, r.unit)}\n`;
     }
     t += `\n💰 مبلغ خرید: ${money(R.buyCost)}\n📊 هزینه مصرف: ${money(R.useCost)}`;
     if (R.budget > 0) t += `\n🎯 سهمیه مجاز: ${money(R.budget)}`;
@@ -305,7 +310,7 @@
         days: settings.days.map((i) => R.plan.days[i].name),
         pilgrims: settings.pilgrims,
         useCost: R.useCost, buyCost: R.buyCost, budget: R.budget,
-        rows: R.rows.filter((r) => !r.asNeeded).map((r) => ({ n: r.name, u: r.unit, need: r.need, buy: r.toBuy, packs: r.packs, cost: r.buyCost || 0 })),
+        rows: R.rows.filter((r) => !r.asNeeded).map((r) => ({ n: r.name, b: r.brand || '', u: r.unit, need: r.need, buy: r.toBuy, packs: r.packs, cost: r.buyCost || 0 })),
       });
       store.set(K.history, history);
       if ($('#saveStock').checked) {
@@ -353,34 +358,42 @@
     renderPrices();
   }));
 
-  // A4 price list: every item with its packaging and price; the table header repeats on each page
+  // generic A4 print: fills the print area and prints only it
+  function printDoc(html) {
+    $('#printArea').innerHTML = html;
+    document.body.classList.add('printing');
+    window.print();
+  }
+  window.addEventListener('afterprint', () => document.body.classList.remove('printing'));
+
+  // A4 price list: every item, each brand (ویژند) option on its own row; the table header repeats on each page
   $('#printPrices').onclick = () => {
     const list = itemList('all', '');
-    const rows = list.map((it, i) => {
-      const p = prices[it.id];
-      const has = p && num(p.size) > 0 && num(p.price) > 0;
+    let n = 0, priced = 0;
+    const bodies = list.map((it) => {
+      const p = Core.normPrice(prices[it.id]);
+      const opts = p ? p.list.filter((o) => num(o.size) > 0 && num(o.price) > 0) : [];
+      if (opts.length) priced++;
+      n++;
       const bu = buyUnitLabel(it.unit);
-      return `<tr>
-        <td class="c">${fa(i + 1)}</td>
-        <td>${esc(it.name)}</td>
-        <td>${esc(it.cat || 'سایر')}</td>
-        <td>${has ? `بسته ${fa(p.size, 3)} ${Core.packAdj(it.unit)}` : '—'}</td>
-        <td class="n">${has ? fa(p.price) : '—'}</td>
-        <td class="n">${has ? `${fa(Math.round(num(p.price) / num(p.size)))} <small>/ ${bu}</small>` : '—'}</td>
-        <td class="c">${has && p.at ? Core.faDate(p.at, { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—'}</td></tr>`;
+      const head = (span) => `<td class="c" rowspan="${span}">${fa(n)}</td><td rowspan="${span}">${esc(it.name)}</td><td rowspan="${span}">${esc(it.cat || 'سایر')}</td>`;
+      if (!opts.length) return `<tbody class="${n % 2 ? '' : 'alt'}"><tr>${head(1)}<td>—</td><td>—</td><td class="n">—</td><td class="n">—</td><td class="c">—</td></tr></tbody>`;
+      const selected = Core.pickPrice(p);
+      return `<tbody class="${n % 2 ? '' : 'alt'}">` + opts.map((o, i) => `<tr>${i === 0 ? head(opts.length) : ''}
+        <td>${opts.length > 1 && o === selected ? '✓ ' : ''}${esc(o.b || '—')}</td>
+        <td>بسته ${fa(o.size, 3)} ${Core.packAdj(it.unit)}</td>
+        <td class="n">${fa(o.price)}</td>
+        <td class="n">${fa(Math.round(num(o.price) / num(o.size)))} <small>/ ${bu}</small></td>
+        <td class="c">${o.at ? Core.jShort(o.at) : '—'}</td></tr>`).join('') + '</tbody>';
     }).join('');
-    const priced = list.filter((it) => prices[it.id] && num(prices[it.id].price) > 0).length;
-    $('#printArea').innerHTML = `<h1>فهرست قیمت اقلام دورچین — آشپزیار</h1>
-      <p class="pmeta">تاریخ چاپ: ${Core.faDate(new Date().toISOString())} — ${fa(list.length)} قلم، ${fa(priced)} قلم با قیمت — مبالغ به دینار</p>
+    printDoc(`<h1>فهرست قیمت اقلام دورچین — آشپزیار</h1>
+      <p class="pmeta">تاریخ چاپ: ${Core.jText(Core.todayISO())} — ${fa(list.length)} قلم، ${fa(priced)} قلم با قیمت — مبالغ به دینار — ✓ = ${Core.BRAND_TXT} انتخاب‌شده برای محاسبه</p>
       <table>
-        <colgroup><col style="width:6%"><col style="width:26%"><col style="width:13%"><col style="width:17%"><col style="width:12%"><col style="width:13%"><col style="width:13%"></colgroup>
-        <thead><tr><th>ردیف</th><th>نام قلم</th><th>دسته</th><th>بسته‌بندی</th><th>قیمت بسته</th><th>قیمت واحد</th><th>تاریخ قیمت</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
-    document.body.classList.add('printing-prices');
-    window.print();
+        <colgroup><col style="width:5%"><col style="width:19%"><col style="width:12%"><col style="width:13%"><col style="width:14%"><col style="width:11%"><col style="width:13%"><col style="width:13%"></colgroup>
+        <thead><tr><th>ردیف</th><th>نام قلم</th><th>دسته</th><th>${Core.BRAND}</th><th>بسته‌بندی</th><th>قیمت بسته</th><th>قیمت واحد</th><th>تاریخ قیمت</th></tr></thead>
+        ${bodies}
+      </table>`);
   };
-  window.addEventListener('afterprint', () => document.body.classList.remove('printing-prices'));
   $('#priceSearch').oninput = () => renderPrices();
 
   function planItemIds() {
@@ -401,11 +414,12 @@
 
   function priceMeta(id) {
     const it = data.items[id];
-    const p = prices[id];
-    if (!p || !num(p.size) || !num(p.price)) return null;
+    const p = Core.normPrice(prices[id]);
+    const o = Core.pickPrice(p);
+    if (!o) return null;
     const bu = buyUnitLabel(it.unit);
-    const unitP = num(p.price) / num(p.size);
-    return `بسته ${fa(p.size, 3)} ${Core.packAdj(it.unit)}: ${money(p.price)} — هر ${bu}: <b>${money(unitP)}</b>`;
+    const more = p.list.length > 1 ? ` <span class="buy">(+${fa(p.list.length - 1)} ویژند دیگر)</span>` : '';
+    return `${o.b ? `<b>${esc(o.b)}</b> — ` : ''}بسته ${fa(o.size, 3)} ${Core.packAdj(it.unit)}: ${money(o.price)} — هر ${bu}: <b>${money(num(o.price) / num(o.size))}</b>${more}`;
   }
 
   function renderPrices() {
@@ -421,38 +435,90 @@
     $('#priceList').querySelectorAll('.row').forEach((el) => (el.onclick = () => openPriceSheet(el.dataset.id, renderPrices)));
   }
 
+  const allBrands = () => [...new Set(Object.values(prices).flatMap((p) => p.list.map((o) => o.b)).filter(Boolean))].sort((x, y) => x.localeCompare(y, 'fa'));
+
+  // one item can have several brand (ویژند) options; the selected one is used in calculations
   function openPriceSheet(id, after) {
     const it = data.items[id];
     const bu = buyUnitLabel(it.unit);
-    const p = prices[id] || {};
-    const example = isWeight(it.unit) ? 'مثلاً کیسه ۱۰ کیلویی ← بنویسید ۱۰' : isVolume(it.unit) ? 'مثلاً گالن ۴ لیتری ← بنویسید ۴' : 'مثلاً باکس ۳۰ عددی ← بنویسید ۳۰';
-    openSheet(`<h3>${esc(it.name)}</h3>
-      <label class="field"><span>هر بسته/باکس چند ${bu} است؟ <small>(${example})</small></span>
-        <div class="suffix"><input id="pSize" inputmode="decimal" value="${p.size ? fa(p.size, 3) : ''}"><em>${bu}</em></div></label>
-      <label class="field"><span>قیمت کل همان بسته</span>
-        <div class="suffix"><input id="pPrice" inputmode="numeric" value="${p.price ? fa(p.price) : ''}"><em>دینار</em></div></label>
-      <div class="calc" id="pCalc">—</div>
-      <button class="btn" id="pSave">ذخیره قیمت</button>
-      ${p.price ? '<button class="link" style="width:100%;color:var(--bad)" id="pDel">حذف قیمت</button>' : ''}`);
-    const upd = () => {
-      const s = num($('#pSize').value), pr = num($('#pPrice').value);
-      $('#pCalc').textContent = s > 0 && pr > 0 ? `قیمت هر ${bu}: ${money(pr / s)}` : 'اندازه و قیمت بسته را بنویسید';
-    };
-    $('#pSize').oninput = upd;
-    $('#pPrice').oninput = upd;
-    upd();
-    setTimeout(() => $('#pSize').focus(), 250);
-    $('#pSave').onclick = () => {
-      const s = num($('#pSize').value), pr = num($('#pPrice').value);
-      if (!(s > 0 && pr > 0)) return toast('اندازه و قیمت را کامل بنویسید');
-      prices[id] = { size: s, price: pr, at: new Date().toISOString() };
+    const p = structuredClone(Core.normPrice(prices[id]) || { sel: 0, list: [] });
+    const persist = () => {
+      if (p.list.length) prices[id] = p; else delete prices[id];
       store.set(K.prices, prices);
-      closeSheet();
-      toast('قیمت ذخیره شد');
       after?.();
     };
-    const del = $('#pDel');
-    if (del) del.onclick = () => { delete prices[id]; store.set(K.prices, prices); closeSheet(); after?.(); };
+
+    const listView = () => {
+      if (!p.list.length) return formView(-1);
+      openSheet(`<h3>${esc(it.name)}</h3>
+        <p class="hint" style="margin:-6px 0 12px">برای هر ${Core.BRAND} قیمت جدا ثبت کنید. گزینه انتخاب‌شده در محاسبه خرید استفاده می‌شود؛ برای انتخاب، روی آن بزنید.</p>
+        ${p.list.map((o, i) => `<div class="opt ${i === p.sel ? 'on' : ''}" data-i="${i}"><span class="dot"></span>
+          <span style="flex:1"><b>${esc(o.b || 'بدون نام')}</b><br><small style="color:var(--muted)">بسته ${fa(o.size, 3)} ${Core.packAdj(it.unit)}: ${money(o.price)} — هر ${bu}: ${money(num(o.price) / num(o.size))}</small></span>
+          <button class="mini" data-edit="${i}">✎ ویرایش</button></div>`).join('')}
+        <button class="btn ghost" id="pAdd">+ افزودن ${Core.BRAND} دیگر</button>
+        <button class="btn" id="pDone" style="margin-top:10px">تمام</button>`);
+      document.querySelectorAll('#sheet .opt').forEach((el) => (el.onclick = (e) => {
+        const ed = e.target.closest('[data-edit]');
+        if (ed) return formView(+ed.dataset.edit);
+        p.sel = +el.dataset.i;
+        persist();
+        listView();
+        toast('این ویژند برای محاسبه انتخاب شد');
+      }));
+      $('#pAdd').onclick = () => formView(-1);
+      $('#pDone').onclick = closeSheet;
+    };
+
+    const formView = (i) => {
+      const o = i >= 0 ? p.list[i] : { b: '', size: '', price: '' };
+      const example = isWeight(it.unit) ? 'مثلاً کیسه ۱۰ کیلویی ← بنویسید ۱۰' : isVolume(it.unit) ? 'مثلاً گالن ۴ لیتری ← بنویسید ۴' : 'مثلاً باکس ۳۰ عددی ← بنویسید ۳۰';
+      openSheet(`<h3>${esc(it.name)}</h3>
+        <label class="field"><span>${Core.BRAND} <small>(اختیاری — مثلاً کاله، پگاه، کوکاکولا)</small></span>
+          <input id="pBrand" list="brandList" value="${esc(o.b)}" placeholder="نام ویژند"></label>
+        <datalist id="brandList">${allBrands().map((b) => `<option value="${esc(b)}">`).join('')}</datalist>
+        <label class="field"><span>هر بسته/باکس چند ${bu} است؟ <small>(${example})</small></span>
+          <div class="suffix"><input id="pSize" inputmode="decimal" value="${o.size ? fa(o.size, 3) : ''}"><em>${bu}</em></div></label>
+        <label class="field"><span>قیمت کل همان بسته</span>
+          <div class="suffix"><input id="pPrice" inputmode="numeric" value="${o.price ? fa(o.price) : ''}"><em>دینار</em></div></label>
+        <div class="calc" id="pCalc">—</div>
+        <button class="btn" id="pSave">ذخیره قیمت</button>
+        ${i >= 0 ? '<button class="link" style="width:100%;color:var(--bad)" id="pDel">حذف این قیمت</button>' : ''}
+        ${p.list.length ? `<button class="link" style="width:100%" id="pBack">← بازگشت به فهرست ویژندها</button>` : ''}`);
+      const upd = () => {
+        const sz = num($('#pSize').value), pr = num($('#pPrice').value);
+        $('#pCalc').textContent = sz > 0 && pr > 0 ? `قیمت هر ${bu}: ${money(pr / sz)}` : 'اندازه و قیمت بسته را بنویسید';
+      };
+      $('#pSize').oninput = upd;
+      $('#pPrice').oninput = upd;
+      upd();
+      setTimeout(() => $(i >= 0 ? '#pPrice' : '#pBrand')?.focus(), 250);
+      $('#pSave').onclick = () => {
+        const sz = num($('#pSize').value), pr = num($('#pPrice').value);
+        if (!(sz > 0 && pr > 0)) return toast('اندازه و قیمت را کامل بنویسید');
+        const opt = { b: $('#pBrand').value.trim(), size: sz, price: pr, at: new Date().toISOString() };
+        // entering a brand that already exists replaces its older price
+        const same = p.list.findIndex((x, k) => k !== i && x.b === opt.b);
+        if (i >= 0) {
+          p.list[i] = opt;
+          if (same >= 0) { p.list.splice(same, 1); if (p.sel === same) p.sel = same < i ? i - 1 : i; else if (p.sel > same) p.sel--; }
+        } else if (same >= 0) p.list[same] = opt;
+        else { p.list.push(opt); if (p.list.length === 1) p.sel = 0; }
+        persist();
+        toast('قیمت ذخیره شد');
+        if (p.list.length > 1) listView(); else closeSheet();
+      };
+      const del = $('#pDel');
+      if (del) del.onclick = () => {
+        p.list.splice(i, 1);
+        if (p.sel === i) p.sel = 0; else if (p.sel > i) p.sel--;
+        persist();
+        if (p.list.length) listView(); else closeSheet();
+      };
+      const back = $('#pBack');
+      if (back) back.onclick = listView;
+    };
+
+    listView();
   }
 
   // ---------- stock
@@ -516,7 +582,7 @@
     const h = history.find((x) => x.id === id);
     if (!h) return;
     const rows = h.rows.filter((r) => r.buy > 0)
-      .map((r) => `<li><span>${esc(r.n)}: ${qtyText(r.buy, r.u)}${r.packs != null ? ` (${fa(r.packs)} بسته)` : ''}</span><b>${r.cost ? money(r.cost) : '—'}</b></li>`).join('');
+      .map((r) => `<li><span>${esc(r.n)}${r.b ? ` (${esc(r.b)})` : ''}: ${qtyText(r.buy, r.u)}${r.packs != null ? ` (${fa(r.packs)} بسته)` : ''}</span><b>${r.cost ? money(r.cost) : '—'}</b></li>`).join('');
     openSheet(`<h3>${esc(h.note || h.plan)}</h3>
       <div class="meta" style="color:var(--muted);font-size:14px">${Core.faDate(h.date)} — ${esc(h.plan)}<br>${fa(h.pilgrims)} زائر — ${esc(h.days.join('، '))}</div>
       <div class="summary" style="margin-top:12px">
@@ -535,7 +601,9 @@
   }
 
   $('#backupBtn').onclick = async () => {
-    const blob = new Blob([JSON.stringify({ app: 'ashpazyar', at: new Date().toISOString(), settings, prices, stock, history }, null, 1)], { type: 'application/json' });
+    const ledger = store.get('ash.ledger', null);
+    const blob = new Blob([JSON.stringify({ app: 'ashpazyar', at: new Date().toISOString(), settings, prices, stock, history, ledger }, null, 1)], { type: 'application/json' });
+    store.set('ash.lastBackup', new Date().toISOString());
     const name = `ashpazyar-backup-${new Date().toISOString().slice(0, 10)}.json`;
     const file = new File([blob], name, { type: 'application/json' });
     if (navigator.canShare?.({ files: [file] })) {
@@ -555,13 +623,24 @@
       const b = JSON.parse(await f.text());
       if (b.app !== 'ashpazyar') throw 0;
       if (!confirm('اطلاعات فعلی این گوشی با فایل پشتیبان جایگزین شود؟')) return;
-      prices = b.prices || {}; stock = b.stock || {}; history = b.history || [];
+      prices = Object.fromEntries(Object.entries(b.prices || {}).map(([k, v]) => [k, Core.normPrice(v)]).filter(([, v]) => v)); stock = b.stock || {}; history = b.history || [];
       Object.assign(settings, b.settings || {});
       store.set(K.prices, prices); store.set(K.stock, stock); store.set(K.history, history); saveSettings();
+      if (b.ledger) store.set('ash.ledger', b.ledger);
       toast('اطلاعات بازگردانی شد ✅');
       location.reload();
     } catch { toast('این فایل، پشتیبان آشپزیار نیست'); }
     e.target.value = '';
+  };
+
+  // ---------- shared with the ledger module (js/ledger.js)
+  window.App = {
+    get data() { return data; },
+    get prices() { return prices; },
+    savePrices() { store.set(K.prices, prices); },
+    get settings() { return settings; },
+    toast, openSheet, closeSheet, printDoc, allBrands, show,
+    backup: () => $('#backupBtn').click(),
   };
 
   // ---------- install

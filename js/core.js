@@ -35,6 +35,63 @@ const Core = (() => {
     return fa(Math.ceil(amount - 1e-9)) + ' ' + unit;
   }
 
+  // ---------- prices: each item may have several brand (ویژند) options; one is selected for calculations
+  // stored shape: { sel: index, list: [{ b: brand, size, price, at }] }  (old shape {size, price, at} is migrated)
+  function normPrice(p) {
+    if (!p) return null;
+    if (Array.isArray(p.list)) return p;
+    if (num(p.size) > 0 && num(p.price) > 0) return { sel: 0, list: [{ b: '', size: p.size, price: p.price, at: p.at }] };
+    return null;
+  }
+  const validOpt = (o) => o && num(o.size) > 0 && num(o.price) > 0;
+  function pickPrice(p) {
+    const n = normPrice(p);
+    if (!n) return null;
+    if (validOpt(n.list[n.sel])) return n.list[n.sel];
+    return n.list.find(validOpt) || null;
+  }
+  const BRAND = 'ویژند <small class="brand-en">(برند)</small>';
+  const BRAND_TXT = 'ویژند (برند)';
+
+  // ---------- Jalali (Persian) calendar; dates are stored as local 'YYYY-MM-DD' (Gregorian)
+  function g2j(gy, gm, gd) {
+    const gdm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    let jy;
+    if (gy > 1600) { jy = 979; gy -= 1600; } else { jy = 0; gy -= 621; }
+    const gy2 = gm > 2 ? gy + 1 : gy;
+    let days = 365 * gy + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) - 80 + gd + gdm[gm - 1];
+    jy += 33 * Math.floor(days / 12053); days %= 12053;
+    jy += 4 * Math.floor(days / 1461); days %= 1461;
+    if (days > 365) { jy += Math.floor((days - 1) / 365); days = (days - 1) % 365; }
+    const jm = days < 186 ? 1 + Math.floor(days / 31) : 7 + Math.floor((days - 186) / 30);
+    const jd = 1 + (days < 186 ? days % 31 : (days - 186) % 30);
+    return [jy, jm, jd];
+  }
+  function j2g(jy, jm, jd) {
+    let gy;
+    if (jy > 979) { gy = 1600; jy -= 979; } else { gy = 621; }
+    let days = 365 * jy + Math.floor(jy / 33) * 8 + Math.floor(((jy % 33) + 3) / 4) + 78 + jd + (jm < 7 ? (jm - 1) * 31 : (jm - 7) * 30 + 186);
+    gy += 400 * Math.floor(days / 146097); days %= 146097;
+    if (days > 36524) { gy += 100 * Math.floor(--days / 36524); days %= 36524; if (days >= 365) days++; }
+    gy += 4 * Math.floor(days / 1461); days %= 1461;
+    if (days > 365) { gy += Math.floor((days - 1) / 365); days = (days - 1) % 365; }
+    let gd = days + 1;
+    const sal = [0, 31, (gy % 4 === 0 && gy % 100 !== 0) || gy % 400 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let gm;
+    for (gm = 0; gm < 13; gm++) { if (gd <= sal[gm]) break; gd -= sal[gm]; }
+    return [gy, gm, gd];
+  }
+  const pad = (n) => String(n).padStart(2, '0');
+  const isoOf = (gy, gm, gd) => `${gy}-${pad(gm)}-${pad(gd)}`;
+  const todayISO = () => { const d = new Date(); return isoOf(d.getFullYear(), d.getMonth() + 1, d.getDate()); };
+  const isoToJ = (iso) => { const [y, m, d] = iso.slice(0, 10).split('-').map(Number); return g2j(y, m, d); };
+  const jToIso = (jy, jm, jd) => isoOf(...j2g(jy, jm, jd));
+  const jMonthLen = (jy, jm) => (jm <= 6 ? 31 : jm <= 11 ? 30 : isoToJ(jToIso(jy, 12, 30))[1] === 12 ? 30 : 29);
+  const J_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+  const faN = (n) => Number(n).toLocaleString('fa-IR', { useGrouping: false });
+  const jText = (iso) => { const [y, m, d] = isoToJ(iso); return `${faN(d)} ${J_MONTHS[m - 1]} ${faN(y)}`; };
+  const jShort = (iso) => { const [y, m, d] = isoToJ(iso); return `${faN(y)}/${faN(m).padStart(2, '۰')}/${faN(d).padStart(2, '۰')}`; };
+
   // ---------- menu expansion
   const share = (e) => (e.q == null ? null : e.q * (e.p == null ? 100 : e.p) / 100);
 
@@ -81,8 +138,9 @@ const Core = (() => {
       const st = Math.max(0, num(stock[id]) * f);
       row.stock = st;
       row.toBuy = Math.max(0, need - st);
-      const pr = prices[id];
-      if (pr && num(pr.size) > 0 && num(pr.price) > 0) {
+      const pr = pickPrice(prices[id]);
+      if (pr) {
+        row.brand = pr.b || '';
         const sizeBase = num(pr.size) * f;
         row.unitPrice = num(pr.price) / sizeBase; // per base unit
         row.packs = Math.ceil(row.toBuy / sizeBase - 1e-9);
@@ -153,5 +211,5 @@ const Core = (() => {
     } catch { return iso.slice(0, 7); }
   };
 
-  return { MEALS, byCat, isWeight, isVolume, buyFactor, buyUnitLabel, packAdj, fa, num, toEnDigits, money, qtyText, perPersonNeeds, calculate, recipeTotals, entryLabel, store, esc, faDate, faMonthKey };
+  return { MEALS, byCat, normPrice, pickPrice, BRAND, BRAND_TXT, g2j, j2g, todayISO, isoToJ, jToIso, jMonthLen, J_MONTHS, jText, jShort, faN, isWeight, isVolume, buyFactor, buyUnitLabel, packAdj, fa, num, toEnDigits, money, qtyText, perPersonNeeds, calculate, recipeTotals, entryLabel, store, esc, faDate, faMonthKey };
 })();
