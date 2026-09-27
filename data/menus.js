@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 26,
- "updated": "2026-09-27T08:33:33.849Z",
+ "version": 27,
+ "updated": "2026-09-27T14:39:52.173Z",
  "groups": [
   {
    "id": "1b",
@@ -564,13 +564,11 @@ window.ASH_DATA = {
        },
        {
         "i": "butter",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "jam",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "bread",
@@ -664,13 +662,11 @@ window.ASH_DATA = {
        },
        {
         "i": "butter",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "jam",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "bread",
@@ -686,8 +682,7 @@ window.ASH_DATA = {
        },
        {
         "i": "ardeh",
-        "q": 30,
-        "p": 70
+        "q": 30
        }
       ]
      },
@@ -765,13 +760,11 @@ window.ASH_DATA = {
        },
        {
         "i": "butter",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "jam",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "bread",
@@ -787,8 +780,7 @@ window.ASH_DATA = {
        },
        {
         "i": "ardeh",
-        "q": 30,
-        "p": 70
+        "q": 30
        }
       ]
      },
@@ -854,13 +846,11 @@ window.ASH_DATA = {
        },
        {
         "i": "butter",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "jam",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "bread",
@@ -958,18 +948,15 @@ window.ASH_DATA = {
        },
        {
         "i": "butter",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "honey",
-        "q": 1,
-        "p": 30
+        "q": 1
        },
        {
         "i": "jam",
-        "q": 1,
-        "p": 30
+        "q": 1
        },
        {
         "i": "bread",
@@ -985,13 +972,11 @@ window.ASH_DATA = {
        },
        {
         "i": "ardeh",
-        "q": 30,
-        "p": 35
+        "q": 30
        },
        {
         "i": "khorma",
-        "q": 30,
-        "p": 35
+        "q": 30
        }
       ]
      },
@@ -1073,13 +1058,11 @@ window.ASH_DATA = {
        },
        {
         "i": "butter",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "jam",
-        "q": 1,
-        "p": 60
+        "q": 1
        },
        {
         "i": "bread",
@@ -1095,8 +1078,7 @@ window.ASH_DATA = {
        },
        {
         "i": "ardeh",
-        "q": 30,
-        "p": 70
+        "q": 30
        }
       ]
      },
