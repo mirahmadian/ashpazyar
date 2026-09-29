@@ -1,7 +1,7 @@
 // Built-in copy of menus.json
 window.ASH_DATA = {
- "version": 29,
- "updated": "2026-09-27T20:17:27.120Z",
+ "version": 30,
+ "updated": "2026-09-29T14:55:53.686Z",
  "groups": [
   {
    "id": "1b",
@@ -546,7 +546,7 @@ window.ASH_DATA = {
     "3b",
     "3c"
    ],
-   "active": false,
+   "active": true,
    "note": "سرانه‌ها طبق آنالیز ابلاغی کاروان‌های اقتصادی.",
    "days": [
     {
