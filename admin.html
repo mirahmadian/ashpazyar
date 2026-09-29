@@ -6,6 +6,7 @@
   <title>مدیریت آشپزیار</title>
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#0f766e">
+  <script>try { if (JSON.parse(localStorage.getItem('ash.theme')) === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (e) {}</script>
   <link rel="icon" href="icons/icon-192.png">
   <link rel="preload" href="fonts/Vazirmatn.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/style.css">
@@ -52,7 +53,7 @@
   </style>
 </head>
 <body class="locked">
-  <header class="topbar"><div style="flex:1"><h1>پنل مدیریت آشپزیار</h1><div class="sub">ویرایش برنامه‌های غذایی و انتشار برای همه کاربران</div></div><a class="mini" href="./" style="background:rgba(255,255,255,.2);color:inherit;display:inline-grid;place-items:center;text-decoration:none">🏠 برنامه</a> <button class="mini" id="lockBtn" style="background:rgba(255,255,255,.2);color:inherit">🔒 قفل</button></header>
+  <header class="topbar"><div style="flex:1"><h1>پنل مدیریت آشپزیار</h1><div class="sub">ویرایش برنامه‌های غذایی و انتشار برای همه کاربران</div></div><button class="theme-btn" id="themeBtn" type="button" style="margin-right:0"></button> <a class="mini" href="./" style="background:rgba(255,255,255,.2);color:inherit;display:inline-grid;place-items:center;text-decoration:none">🏠 برنامه</a> <button class="mini" id="lockBtn" style="background:rgba(255,255,255,.2);color:inherit">🔒 قفل</button></header>
   <div class="atabs" id="atabs">
     <button data-t="plans" class="on">برنامه‌ها</button>
     <button data-t="items">اقلام</button>

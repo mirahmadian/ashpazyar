@@ -24,15 +24,13 @@
   --radius: 16px;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #141a19; --card: #1d2524; --ink: #e8efec; --muted: #9aa7a2; --line: #2d3836;
-    --brand: #2dd4bf; --brand-ink: #062a26; --brand-soft: #16312e;
-    --accent: #f59e0b; --accent-soft: #33280f;
-    --ok: #4ade80; --ok-soft: #14301d; --bad: #f87171; --bad-soft: #3a1717;
-    --shadow: none;
-    color-scheme: dark;
-  }
+:root[data-theme="dark"] {
+  --bg: #141a19; --card: #1d2524; --ink: #e8efec; --muted: #9aa7a2; --line: #2d3836;
+  --brand: #2dd4bf; --brand-ink: #062a26; --brand-soft: #16312e;
+  --accent: #f59e0b; --accent-soft: #33280f;
+  --ok: #4ade80; --ok-soft: #14301d; --bad: #f87171; --bad-soft: #3a1717;
+  --shadow: none;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -55,6 +53,10 @@ h1, h2, h3 { margin: 0; line-height: 1.4; }
   padding: 14px 16px calc(12px);
   padding-top: calc(14px + env(safe-area-inset-top));
   display: flex; align-items: center; gap: 10px;
+}
+.theme-btn {
+  margin-right: auto; flex: none; border: 0; border-radius: 12px; min-height: 40px; padding: 0 12px;
+  background: rgba(255,255,255,.2); color: inherit; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .topbar h1 { font-size: 21px; font-weight: 800; }
 .topbar .sub { font-size: 13px; opacity: .85; }

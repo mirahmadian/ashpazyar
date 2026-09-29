@@ -229,5 +229,26 @@ const Core = (() => {
     } catch { return iso.slice(0, 7); }
   };
 
+  // ---------- day / night theme (day is the default)
+  function initTheme() {
+    const btn = document.getElementById('themeBtn');
+    const apply = (t) => {
+      if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+      else delete document.documentElement.dataset.theme;
+      document.querySelector('meta[name=theme-color]')?.setAttribute('content', t === 'dark' ? '#1d2524' : '#0f766e');
+      if (btn) {
+        btn.textContent = t === 'dark' ? '☀️ روز' : '🌙 شب';
+        btn.title = t === 'dark' ? 'رفتن به حالت روز' : 'رفتن به حالت شب';
+      }
+    };
+    let theme = store.get('ash.theme', 'light') === 'dark' ? 'dark' : 'light';
+    apply(theme);
+    if (btn) btn.onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; store.set('ash.theme', theme); apply(theme); };
+  }
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTheme);
+    else initTheme();
+  }
+
   return { MEALS, byCat, normPrice, pickPrice, BRAND, BRAND_TXT, OFFICIAL, encodePrices, decodePrices, g2j, j2g, todayISO, isoToJ, jToIso, jMonthLen, J_MONTHS, jText, jShort, faN, isWeight, isVolume, buyFactor, buyUnitLabel, packAdj, fa, num, toEnDigits, money, qtyText, perPersonNeeds, calculate, recipeTotals, entryLabel, store, esc, faDate, faMonthKey };
 })();
