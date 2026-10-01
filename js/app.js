@@ -412,6 +412,7 @@
       </table>`);
   };
   $('#priceSearch').oninput = () => renderPrices();
+  Core.bindFaFix($('#priceSearch'), () => Object.values(data?.items || {}).map((it) => it.name));
 
   function planItemIds() {
     const plan = currentPlan();
@@ -425,7 +426,7 @@
     if (!ids) ids = Object.keys(data.items);
     return ids
       .map((id) => ({ id, ...data.items[id] }))
-      .filter((it) => it.name && (!q || it.name.includes(q)))
+      .filter((it) => it.name && Core.matchText(it.name, q))
       .sort(Core.byCat);
   }
 
@@ -538,6 +539,7 @@
         const sz = num($('#pSize').value), pr = num($('#pPrice').value);
         $('#pCalc').textContent = sz > 0 && pr > 0 ? `قیمت هر ${bu}: ${money(pr / sz)}` : 'اندازه و قیمت بسته را بنویسید';
       };
+      Core.bindFaFix($('#pBrand'), allBrands);
       $('#pSize').oninput = upd;
       $('#pPrice').oninput = upd;
       upd();
@@ -576,6 +578,7 @@
 
   // ---------- stock
   $('#stockSearch').oninput = () => renderStock();
+  Core.bindFaFix($('#stockSearch'), () => Object.values(data?.items || {}).map((it) => it.name));
   function renderStock() {
     if (!data) return;
     const list = itemList('plan', $('#stockSearch').value.trim());

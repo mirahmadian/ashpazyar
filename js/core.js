@@ -229,6 +229,36 @@ const Core = (() => {
     } catch { return iso.slice(0, 7); }
   };
 
+  // ---------- text typed with the keyboard left on English (e.g. 'lhsj' -> 'ماست')
+  // keys of the standard Persian layout; Shift+H = آ and Shift+C = ژ
+  const FA_KEYS = {
+    q: 'ض', w: 'ص', e: 'ث', r: 'ق', t: 'ف', y: 'غ', u: 'ع', i: 'ه', o: 'خ', p: 'ح', '[': 'ج', ']': 'چ', '\\': 'پ',
+    a: 'ش', s: 'س', d: 'ی', f: 'ب', g: 'ل', h: 'ا', j: 'ت', k: 'ن', l: 'م', ';': 'ک', "'": 'گ',
+    z: 'ظ', x: 'ط', c: 'ز', v: 'ر', b: 'ذ', n: 'د', m: 'پ', ',': 'و', H: 'آ', C: 'ژ', '`': 'پ',
+  };
+  const hasLatin = (t) => /[A-Za-z]/.test(t);
+  const enToFa = (t) => String(t ?? '').replace(/[A-Za-z[\]\\;',`]/g, (ch) => FA_KEYS[ch] ?? FA_KEYS[ch.toLowerCase()] ?? ch);
+  // loose form for comparing: Arabic ي/ك as Persian, no half-spaces or spaces, lower case
+  const normFa = (t) => String(t ?? '').replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\u200c\s]+/g, '').toLowerCase();
+  function matchText(target, q) {
+    const nq = normFa(q);
+    if (!nq) return true;
+    const nt = normFa(target);
+    return nt.includes(nq) || (hasLatin(q) && nt.includes(normFa(enToFa(q))));
+  }
+  // while typing, swap English-layout text to Persian when that matches one of the known names
+  function bindFaFix(input, candidates) {
+    input.addEventListener('input', () => {
+      const v = input.value;
+      if (!hasLatin(v)) return;
+      const fa = enToFa(v);
+      const nf = normFa(fa);
+      if (!nf || !candidates().some((c) => normFa(c).includes(nf))) return;
+      input.value = fa;
+      try { input.setSelectionRange(fa.length, fa.length); } catch {}
+    });
+  }
+
   // ---------- day / night theme (day is the default)
   function initTheme() {
     const btn = document.getElementById('themeBtn');
@@ -250,5 +280,5 @@ const Core = (() => {
     else initTheme();
   }
 
-  return { MEALS, byCat, normPrice, pickPrice, BRAND, BRAND_TXT, OFFICIAL, encodePrices, decodePrices, g2j, j2g, todayISO, isoToJ, jToIso, jMonthLen, J_MONTHS, jText, jShort, faN, isWeight, isVolume, buyFactor, buyUnitLabel, packAdj, fa, num, toEnDigits, money, qtyText, perPersonNeeds, calculate, recipeTotals, entryLabel, store, esc, faDate, faMonthKey };
+  return { enToFa, normFa, matchText, bindFaFix, MEALS, byCat, normPrice, pickPrice, BRAND, BRAND_TXT, OFFICIAL, encodePrices, decodePrices, g2j, j2g, todayISO, isoToJ, jToIso, jMonthLen, J_MONTHS, jText, jShort, faN, isWeight, isVolume, buyFactor, buyUnitLabel, packAdj, fa, num, toEnDigits, money, qtyText, perPersonNeeds, calculate, recipeTotals, entryLabel, store, esc, faDate, faMonthKey };
 })();

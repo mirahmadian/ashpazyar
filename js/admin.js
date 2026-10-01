@@ -258,7 +258,7 @@
     let h = `<div class="card"><p class="hint" style="margin:0 0 10px">این قیمت‌ها با علامت «✔ ${Core.OFFICIAL}» برای همه کاربران نمایش داده می‌شود. قیمت را برای یک بسته عمده وارد کنید (مثلاً باکس ۲۴ عددی). گزینه‌ای که دایره‌اش پر است، پیش‌فرض محاسبه کاربران است. بعد از تغییر، در زبانه «انتشار» دکمه انتشار را بزنید.</p>
       <div class="toolbar"><input id="pqs" placeholder="🔍 جستجوی قلم…" value="${esc(pq)}" style="flex:1;min-width:160px"><button class="btn ghost" id="impOpen">📥 دریافت قیمت از پیام کاربر</button></div>
       <div id="impBox"></div></div>`;
-    const items = Object.entries(data.items).sort(byCatName).filter(([, it]) => !pq || it.name.includes(pq));
+    const items = Object.entries(data.items).sort(byCatName).filter(([, it]) => Core.matchText(it.name, pq));
     for (const [id, it] of items) {
       const p = data.prices[id] || { sel: 0, list: [] };
       const bu = Core.buyUnitLabel(it.unit);
@@ -277,6 +277,7 @@
     el.innerHTML = h;
     renderImport();
 
+    Core.bindFaFix($('#pqs'), () => Object.values(data.items).map((it) => it.name));
     $('#pqs').oninput = (e) => { pq = e.target.value.trim(); const pos = e.target.selectionStart; renderPrices(); const n = $('#pqs'); n.focus(); n.setSelectionRange(pos, pos); };
     $('#impOpen').onclick = () => { importRows = importRows ? null : []; renderImport(); };
     $$('#t-prices [data-pid]').forEach((card) => {

@@ -187,7 +187,7 @@ const Ledger = (() => {
 
     // invoice lines
     const items = Object.entries(A().data?.items || {});
-    const itemByName = (n) => items.find(([, it]) => it.name === n.trim());
+    const itemByName = (n) => items.find(([, it]) => it.name === n.trim()) || items.find(([, it]) => Core.normFa(it.name) === Core.normFa(Core.enToFa(n)));
     function drawLines() {
       $('#fLines').innerHTML = e.lines.map((l, i) => `<div class="line" data-l="${i}">
         <div class="line-top"><input data-k="name" list="dlItems" value="${esc(l.name)}" placeholder="نام قلم"><button type="button" class="x" data-del>✕</button></div>
@@ -207,6 +207,7 @@ const Ledger = (() => {
           l[k] = k === 'qty' || k === 'price' ? (inp.value.trim() === '' ? '' : num(inp.value)) : inp.value.trim();
           if (k === 'name') {
             const hit = itemByName(l.name);
+            if (hit && hit[1].name !== l.name) { l.name = hit[1].name; inp.value = l.name; }
             l.itemId = hit?.[0] || null;
             l.cat = hit?.[1].cat || 'سایر';
             // prefill from the price list when the item is known
@@ -220,6 +221,8 @@ const Ledger = (() => {
           if (k === 'qty' || k === 'price') inp.value = l[k] === '' ? '' : fa(l[k], k === 'qty' ? 3 : 2);
           updTotal();
         }));
+        Core.bindFaFix($('[data-k=name]', row), () => items.map(([, it]) => it.name));
+        Core.bindFaFix($('[data-k=brand]', row), A().allBrands);
         $('[data-del]', row).onclick = () => { e.lines.splice(+row.dataset.l, 1); if (!e.lines.length) e.lines.push({ name: '', brand: '', qty: '', unit: 'بسته', price: '' }); drawLines(); };
       });
       updTotal();
