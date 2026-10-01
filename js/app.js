@@ -9,7 +9,6 @@
   let prices = Object.fromEntries(Object.entries(store.get(K.prices, {})).map(([k, v]) => [k, Core.normPrice(v)]).filter(([, v]) => v));
   // which price option the user picked per item: { src: 'o' (office) | 'l' (own), b: brand }
   let priceSel = store.get(K.priceSel, {});
-  let stock = store.get(K.stock, {});
   let history = store.get(K.history, []);
   let lastResult = null;
 
@@ -41,7 +40,7 @@
     result: ['فهرست خرید', ''],
     menu: ['منوی برنامه', ''],
     prices: ['قیمت اقلام', 'قیمت خرید عمده را وارد کنید'],
-    stock: ['موجودی انبار', 'آنچه از قبل دارید'],
+    stock: ['موجودی انبار', 'ورود با فاکتور خرید، خروج با ثبت مصرف'],
     history: ['سابقه خریدها', 'هزینه‌های ثبت‌شده روی این گوشی'],
     ledger: ['دفتر مالی', 'فاکتورها، پرداخت‌ها، دریافت‌ها و گزارش'],
   };
@@ -58,7 +57,7 @@
     document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
     window.scrollTo(0, 0);
     if (name === 'prices') renderPrices();
-    if (name === 'stock') renderStock();
+    if (name === 'stock') window.Stock?.render();
     if (name === 'history') renderHistory();
     if (name === 'ledger') window.Ledger?.render();
   }
@@ -198,7 +197,7 @@
   // ---------- result
   function runCalc() {
     const plan = currentPlan();
-    lastResult = Core.calculate({ data, plan, dayIdxs: settings.days, pilgrims: settings.pilgrims, prices: effAll(), stock, rate: settings.rate, groupId: settings.group });
+    lastResult = Core.calculate({ data, plan, dayIdxs: settings.days, pilgrims: settings.pilgrims, prices: effAll(), stock: window.Stock?.currentObj() || {}, rate: settings.rate, groupId: settings.group });
     lastResult.plan = plan;
     lastResult.recipes = Core.recipeTotals(data, plan, settings.days, settings.pilgrims);
     renderResult();
@@ -261,6 +260,7 @@
     html += `<div class="no-print" style="margin-top:16px">
       <button class="btn" id="saveBtn">💾 ثبت در سابقه</button>
       <button class="btn ghost" id="invoiceBtn" style="margin-top:10px">🧾 ثبت فاکتور خرید از این فهرست</button>
+      <button class="btn ghost" id="useBtn" style="margin-top:10px">🍽 ثبت مصرف این روزها از انبار</button>
       <div class="btn-row">
         <button class="btn ghost" id="shareBtn">📲 ارسال فهرست</button>
         <button class="btn ghost" id="printBtn">🖨 چاپ</button>
@@ -272,6 +272,7 @@
     $('#shareBtn').onclick = shareList;
     $('#printBtn').onclick = () => window.print();
     $('#invoiceBtn').onclick = () => window.Ledger?.invoiceFromResult(lastResult);
+    $('#useBtn').onclick = () => window.Stock?.openConsume({ days: settings.days, pilgrims: settings.pilgrims });
   }
 
   function listText() {
@@ -299,7 +300,6 @@
   function openSaveSheet() {
     openSheet(`<h3>ثبت در سابقه</h3>
       <label class="field"><span>یادداشت (اختیاری) — مثلاً نام هتل یا کاروان</span><input id="saveNote" placeholder="مثلاً هتل الکوثر — کاروان ۱۲"></label>
-      <label class="check"><input type="checkbox" id="saveStock" checked><span>باقی‌مانده این خرید را به‌عنوان «موجودی انبار» ذخیره کن تا دفعه بعد کمتر بخرم.<br><small style="color:var(--muted)">بعداً می‌توانید در صفحه موجودی اصلاحش کنید.</small></span></label>
       <button class="btn" id="saveOk">ثبت کن</button>
       <button class="link" style="width:100%" id="saveCancel">انصراف</button>`);
     $('#saveCancel').onclick = closeSheet;
@@ -318,14 +318,6 @@
         rows: R.rows.filter((r) => !r.asNeeded).map((r) => ({ n: r.name, b: r.brand || '', u: r.unit, need: r.need, buy: r.toBuy, packs: r.packs, cost: r.buyCost || 0 })),
       });
       store.set(K.history, history);
-      if ($('#saveStock').checked) {
-        for (const r of R.rows) {
-          if (r.asNeeded) continue;
-          const left = Math.max(0, r.leftover || 0) / buyFactor(r.unit);
-          if (left > 0) stock[r.id] = +left.toFixed(3); else delete stock[r.id];
-        }
-        store.set(K.stock, stock);
-      }
       closeSheet();
       toast('در سابقه ثبت شد ✅');
     };
@@ -579,38 +571,6 @@
     listView();
   }
 
-  // ---------- stock
-  $('#stockSearch').oninput = () => renderStock();
-  Core.bindFaFix($('#stockSearch'), () => Object.values(data?.items || {}).map((it) => it.name));
-  function renderStock() {
-    if (!data) return;
-    const list = itemList('plan', $('#stockSearch').value.trim());
-    let html = '', cat = null;
-    for (const it of list) {
-      if (it.cat !== cat) { cat = it.cat; html += `<div class="cat-title">${esc(cat || 'سایر')}</div>`; }
-      const v = stock[it.id];
-      html += `<div class="row stockrow"><span class="name">${esc(it.name)}</span>
-        <div class="suffix"><input data-id="${esc(it.id)}" inputmode="decimal" placeholder="۰" value="${v ? fa(v, 3) : ''}"><em>${buyUnitLabel(it.unit)}</em></div></div>`;
-    }
-    $('#stockList').innerHTML = html || '<div class="empty">اول در صفحه محاسبه، گروه هتل و برنامه را انتخاب کنید.</div>';
-    $('#stockList').querySelectorAll('input').forEach((inp) => {
-      inp.onfocus = () => inp.select();
-      inp.onchange = () => {
-        const v = num(inp.value);
-        if (v > 0) stock[inp.dataset.id] = v; else delete stock[inp.dataset.id];
-        inp.value = v > 0 ? fa(v, 3) : '';
-        store.set(K.stock, stock);
-        toast('موجودی ذخیره شد');
-      };
-    });
-  }
-  $('#clearStock').onclick = () => {
-    if (!confirm('همه موجودی‌ها صفر شوند؟')) return;
-    stock = {};
-    store.set(K.stock, stock);
-    renderStock();
-  };
-
   // ---------- history
   function renderHistory() {
     if (!history.length) {
@@ -661,7 +621,7 @@
 
   $('#backupBtn').onclick = async () => {
     const ledger = store.get('ash.ledger', null);
-    const blob = new Blob([JSON.stringify({ app: 'ashpazyar', at: new Date().toISOString(), settings, prices, priceSel, stock, history, ledger }, null, 1)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ app: 'ashpazyar', at: new Date().toISOString(), settings, prices, priceSel, history, ledger, ...(window.Stock?.exportData() || {}) }, null, 1)], { type: 'application/json' });
     store.set('ash.lastBackup', new Date().toISOString());
     const name = `ashpazyar-backup-${new Date().toISOString().slice(0, 10)}.json`;
     const file = new File([blob], name, { type: 'application/json' });
@@ -682,10 +642,12 @@
       const b = JSON.parse(await f.text());
       if (b.app !== 'ashpazyar') throw 0;
       if (!confirm('اطلاعات فعلی این گوشی با فایل پشتیبان جایگزین شود؟')) return;
-      prices = Object.fromEntries(Object.entries(b.prices || {}).map(([k, v]) => [k, Core.normPrice(v)]).filter(([, v]) => v)); stock = b.stock || {}; history = b.history || [];
+      prices = Object.fromEntries(Object.entries(b.prices || {}).map(([k, v]) => [k, Core.normPrice(v)]).filter(([, v]) => v)); history = b.history || [];
       Object.assign(settings, b.settings || {});
       priceSel = b.priceSel || {};
-      store.set(K.prices, prices); store.set(K.priceSel, priceSel); store.set(K.stock, stock); store.set(K.history, history); saveSettings();
+      store.set(K.prices, prices); store.set(K.priceSel, priceSel); store.set(K.history, history);
+      // stock: the movement log, or (older backups) plain amounts that become the opening stock
+      store.set('ash.stockLog', b.stockLog || null); store.set('ash.counts', b.counts || []); store.set('ash.stock', b.stock || {}); saveSettings();
       if (b.ledger) store.set('ash.ledger', b.ledger);
       toast('اطلاعات بازگردانی شد ✅');
       location.reload();

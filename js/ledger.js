@@ -210,8 +210,22 @@ const Ledger = (() => {
       const bs = [...brandsFor(l.itemId, l.name).keys()];
       return bs.length ? `<div class="bchips"><span>ویژندهای قبلی:</span>${bs.map((b) => `<button type="button" class="bchip ${b === l.brand ? 'on' : ''}" data-b="${esc(b)}">${esc(b)}</button>`).join('')}</div>` : '';
     }
+    // how this line enters the stock: directly in the item's stock unit, or via the pack size
+    function convHtml(l) {
+      const it = l.itemId && A().data?.items[l.itemId];
+      if (!it || !window.Stock) return '';
+      const bu = Core.buyUnitLabel(it.unit);
+      if (l.unit === bu) return num(l.qty) > 0 ? `<div class="line-conv">📦 ${fa(l.qty, 3)} ${bu} به انبار اضافه می‌شود</div>` : '';
+      if (!Stock.PACK_UNITS.includes(l.unit)) return `<div class="line-conv neg">واحد «${esc(l.unit)}» به ${bu} تبدیل نمی‌شود؛ این ردیف وارد انبار نمی‌شود.</div>`;
+      const total = num(l.qty) * num(l.size);
+      return `<div class="line-conv">📦 هر ${esc(l.unit)} = <input data-k="size" inputmode="decimal" value="${num(l.size) ? fa(l.size, 3) : ''}" placeholder="چند؟"> ${bu}${total > 0 ? ` ← ${fa(total, 3)} ${bu} به انبار` : ' — برای ورود به انبار پر کنید'}</div>`;
+    }
     // refresh one row in place (no re-render, so the field the user tapped next keeps focus)
     function syncRow(row, l) {
+      $('[data-k=qty]', row).value = l.qty === '' ? '' : fa(l.qty, 3);
+      $('[data-conv]', row).innerHTML = convHtml(l);
+      const sz = $('[data-conv] [data-k=size]', row);
+      if (sz) sz.onchange = () => fieldChanged(row, l, sz);
       $('[data-k=brand]', row).value = l.brand || '';
       $('[data-k=price]', row).value = l.price === '' ? '' : fa(l.price, 2);
       const unit = $('[data-k=unit]', row);
@@ -244,14 +258,22 @@ const Ledger = (() => {
           <input data-k="qty" inputmode="decimal" value="${l.qty === '' ? '' : fa(l.qty, 3)}" placeholder="مقدار">
           <select data-k="unit">${[...new Set([...UNITS, l.unit])].map((u) => `<option ${u === l.unit ? 'selected' : ''}>${esc(u)}</option>`).join('')}</select>
           <input data-k="price" inputmode="decimal" value="${l.price === '' ? '' : fa(l.price, 2)}" placeholder="قیمت هر واحد">
-        </div><div class="line-sum" data-sum></div></div>`).join('') +
+        </div><div data-conv>${convHtml(l)}</div><div class="line-sum" data-sum></div></div>`).join('') +
         `<datalist id="dlItems">${items.map(([, it]) => `<option value="${esc(it.name)}">`).join('')}</datalist>
          <datalist id="dlBrands">${knownBrands().map((b) => `<option value="${esc(b)}">`).join('')}</datalist>`;
       $$('#fLines .line').forEach((row) => {
         const l = e.lines[+row.dataset.l];
-        $$('[data-k]', row).forEach((inp) => (inp.onchange = () => {
+        $$('[data-k]', row).forEach((inp) => (inp.onchange = () => fieldChanged(row, l, inp)));
+        Core.bindFaFix($('[data-k=name]', row), () => items.map(([, it]) => it.name));
+        Core.bindFaFix($('[data-k=brand]', row), knownBrands);
+        bindChips(row, l);
+        $('[data-del]', row).onclick = () => { e.lines.splice(+row.dataset.l, 1); if (!e.lines.length) e.lines.push({ name: '', brand: '', qty: '', unit: 'بسته', price: '' }); drawLines(); };
+      });
+      updTotal();
+    }
+    function fieldChanged(row, l, inp) {
           const k = inp.dataset.k;
-          l[k] = k === 'qty' || k === 'price' ? (inp.value.trim() === '' ? '' : num(inp.value)) : inp.value.trim();
+          l[k] = k === 'qty' || k === 'price' || k === 'size' ? (inp.value.trim() === '' ? '' : num(inp.value)) : inp.value.trim();
           if (k === 'name') {
             const hit = itemByName(l.name);
             if (hit && hit[1].name !== l.name) { l.name = hit[1].name; inp.value = l.name; }
@@ -270,15 +292,9 @@ const Ledger = (() => {
             }
             return syncRow(row, l);
           }
-          if (k === 'qty' || k === 'price') inp.value = l[k] === '' ? '' : fa(l[k], k === 'qty' ? 3 : 2);
+          if (k === 'qty' || k === 'unit' || k === 'size') return syncRow(row, l);
+          if (k === 'price') inp.value = l[k] === '' ? '' : fa(l[k], 2);
           updTotal();
-        }));
-        Core.bindFaFix($('[data-k=name]', row), () => items.map(([, it]) => it.name));
-        Core.bindFaFix($('[data-k=brand]', row), knownBrands);
-        bindChips(row, l);
-        $('[data-del]', row).onclick = () => { e.lines.splice(+row.dataset.l, 1); if (!e.lines.length) e.lines.push({ name: '', brand: '', qty: '', unit: 'بسته', price: '' }); drawLines(); };
-      });
-      updTotal();
     }
     function updTotal() {
       if (kind !== 'invoice') return;
@@ -324,6 +340,7 @@ const Ledger = (() => {
       if (!confirm('این ثبت حذف شود؟')) return;
       L.entries = L.entries.filter((x) => x.id !== e.id);
       save();
+      window.Stock?.removeRef(e.id);
       A().closeSheet();
       render();
     };
@@ -352,7 +369,8 @@ const Ledger = (() => {
       if (i >= 0) L.entries[i] = e; else L.entries.push(e);
       save();
       A().closeSheet();
-      A().toast('ثبت شد ✅');
+      const skipped = kind === 'invoice' && window.Stock ? Stock.syncInvoice(e) : 0;
+      A().toast(skipped ? `ثبت شد؛ ${fa(skipped)} ردیف وارد انبار نشد (اندازه بسته یا نام قلم مشخص نیست)` : kind === 'invoice' ? 'ثبت شد و اقلام وارد انبار شد ✅' : 'ثبت شد ✅');
       render();
     };
   }

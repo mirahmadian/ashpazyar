@@ -1,6 +1,6 @@
 // Bump VERSION whenever app files change so phones pick up the new version
-const VERSION = 'ashpazyar-v12';
-const CORE = ['./', 'index.html', 'css/style.css', 'js/core.js', 'js/app.js', 'js/ledger.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'data/menus.json', 'data/menus.js', 'fonts/Vazirmatn.woff2'];
+const VERSION = 'ashpazyar-v13';
+const CORE = ['./', 'index.html', 'css/style.css', 'js/core.js', 'js/app.js', 'js/ledger.js', 'js/stock.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'data/menus.json', 'data/menus.js', 'fonts/Vazirmatn.woff2'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
