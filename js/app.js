@@ -62,18 +62,21 @@
     if (name === 'history') renderHistory();
     if (name === 'ledger') window.Ledger?.render();
   }
-  function openSub(name, sub) {
-    history_push();
-    show(name, sub);
-  }
-  function history_push() {
-    try { window.history.pushState({ sub: true }, ''); } catch {}
-  }
+  const openSub = show;
+
+  // phone back button: one guard history entry catches it. Back closes an open sheet, then returns to the
+  // first tab; on the first tab it asks for a second back within 2 seconds before the app closes.
+  const guard = () => { try { window.history.pushState({ guard: true }, ''); } catch {} };
+  if (!window.history.state?.guard) guard(); // a reload keeps the existing guard; don't stack another
+  let exitTimer = null;
   window.addEventListener('popstate', () => {
-    if ($('#sheet').classList.contains('on')) return closeSheet();
-    if (current === 'result' || current === 'menu') show('calc');
+    if ($('#sheet').classList.contains('on')) { closeSheet(); return guard(); }
+    if (current !== 'calc') { show('calc'); return guard(); }
+    if (exitTimer) return; // second back: the guard is gone, so the next one leaves the app
+    toast('برای خروج از برنامه، دوباره دکمه بازگشت را بزنید');
+    exitTimer = setTimeout(() => { exitTimer = null; guard(); }, 2000);
   });
-  $('#backBtn').onclick = () => window.history.back();
+  $('#backBtn').onclick = () => show('calc');
   document.querySelectorAll('#tabs button').forEach((b) => (b.onclick = () => show(b.dataset.tab)));
 
   // ---------- data loading
