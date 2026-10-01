@@ -31,6 +31,7 @@
   function closeSheet() {
     $('#sheet').classList.remove('on');
     $('#sheetBg').classList.remove('on');
+    if (asking) { asking = false; guard(); } // the exit question was dismissed: stay in the app
   }
   $('#sheetBg').onclick = closeSheet;
 
@@ -64,16 +65,35 @@
   const openSub = show;
 
   // phone back button: one guard history entry catches it. Back closes an open sheet, then returns to the
-  // first tab; on the first tab it asks for a second back within 2 seconds before the app closes.
+  // first tab; on the first tab it asks before leaving. While that question is open the guard is gone,
+  // so another back leaves the app; «خیر» (or tapping outside) puts the guard back.
   const guard = () => { try { window.history.pushState({ guard: true }, ''); } catch {} };
   if (!window.history.state?.guard) guard(); // a reload keeps the existing guard; don't stack another
-  let exitTimer = null;
+  let asking = false;
+  function askExit() {
+    asking = true;
+    openSheet(`<h3>خروج از آشپزیار</h3>
+      <p style="margin:0 0 6px">آیا می‌خواهید از برنامه خارج شوید؟</p>
+      <p class="hint" style="margin:0 0 14px">برای خروج می‌توانید دوباره دکمه بازگشت گوشی را هم بزنید.</p>
+      <div class="grid2btn"><button class="btn" id="exitYes">بله، خارج شو</button><button class="btn ghost" id="exitNo">خیر، می‌مانم</button></div>`);
+    $('#exitNo').onclick = closeSheet;
+    $('#exitYes').onclick = () => {
+      asking = false;
+      window.close(); // works for an installed app on most phones
+      setTimeout(() => { // still here: leave the page if there is somewhere to go back to
+        if (document.visibilityState === 'visible') window.history.back();
+        setTimeout(() => {
+          if (document.visibilityState !== 'visible') return;
+          asking = true; // the phone did not allow closing; the next back press leaves
+          $('#exitYes').outerHTML = '<p class="hint" style="grid-column:1/-1;margin:0">این گوشی اجازه بستن خودکار نمی‌دهد؛ دکمه بازگشت گوشی را یک بار دیگر بزنید.</p>';
+        }, 400);
+      }, 300);
+    };
+  }
   window.addEventListener('popstate', () => {
     if ($('#sheet').classList.contains('on')) { closeSheet(); return guard(); }
     if (current !== 'calc') { show('calc'); return guard(); }
-    if (exitTimer) return; // second back: the guard is gone, so the next one leaves the app
-    toast('برای خروج از برنامه، دوباره دکمه بازگشت را بزنید');
-    exitTimer = setTimeout(() => { exitTimer = null; guard(); }, 2000);
+    askExit();
   });
   $('#backBtn').onclick = () => show('calc');
   document.querySelectorAll('#tabs button').forEach((b) => (b.onclick = () => show(b.dataset.tab)));
