@@ -526,7 +526,7 @@
       openSheet(`<h3>${esc(it.name)} — قیمت خودم</h3>
         <label class="field"><span>${Core.BRAND} <small>(اختیاری — مثلاً کاله، پگاه، کوکاکولا)</small></span>
           <input id="pBrand" list="brandList" value="${esc(o.b)}" placeholder="نام ویژند"></label>
-        <datalist id="brandList">${allBrands().map((b) => `<option value="${esc(b)}">`).join('')}</datalist>
+        <datalist id="brandList">${(window.Ledger?.knownBrands() || allBrands()).map((b) => `<option value="${esc(b)}">`).join('')}</datalist>
         <label class="field"><span>هر بسته/باکس چند ${bu} است؟ <small>(${example})</small></span>
           <div class="suffix"><input id="pSize" inputmode="decimal" value="${o.size ? fa(o.size, 3) : ''}"><em>${bu}</em></div></label>
         <label class="field"><span>قیمت کل همان بسته</span>
@@ -539,7 +539,7 @@
         const sz = num($('#pSize').value), pr = num($('#pPrice').value);
         $('#pCalc').textContent = sz > 0 && pr > 0 ? `قیمت هر ${bu}: ${money(pr / sz)}` : 'اندازه و قیمت بسته را بنویسید';
       };
-      Core.bindFaFix($('#pBrand'), allBrands);
+      Core.bindFaFix($('#pBrand'), () => window.Ledger?.knownBrands() || allBrands());
       $('#pSize').oninput = upd;
       $('#pPrice').oninput = upd;
       upd();

@@ -57,6 +57,24 @@ const Ledger = (() => {
       : `<span class="pos">طلبکارید: ${amt(-v, cur)}</span>`;
   }
 
+  // every brand (ویژند) known for an item: current price list first, then earlier invoices (newest first)
+  function brandsFor(itemId, name) {
+    const out = new Map();
+    const add = (b, o) => { if (b && !out.has(b)) out.set(b, o); };
+    for (const o of (itemId && A().prices[itemId]?.list) || []) add(o.b, { price: num(o.price), size: num(o.size), unit: 'بسته' });
+    const nn = Core.normFa(name);
+    const invoices = L.entries.filter((x) => x.kind === 'invoice').sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+    for (const inv of invoices) {
+      for (const l of inv.lines) {
+        if (!l.brand || !(itemId ? l.itemId === itemId : nn && Core.normFa(l.name) === nn)) continue;
+        add(l.brand, { price: num(l.price), size: num(l.size) || 0, unit: l.unit });
+      }
+    }
+    return out;
+  }
+  const knownBrands = () => [...new Set([...A().allBrands(), ...L.entries.flatMap((x) => (x.lines || []).map((l) => l.brand)).filter(Boolean)])]
+    .sort((a, b) => a.localeCompare(b, 'fa'));
+
   // ---------- small UI helpers
   function dateField(id, iso) {
     const [y, m, d] = Core.isoToJ(iso || Core.todayISO());
@@ -188,10 +206,39 @@ const Ledger = (() => {
     // invoice lines
     const items = Object.entries(A().data?.items || {});
     const itemByName = (n) => items.find(([, it]) => it.name === n.trim()) || items.find(([, it]) => Core.normFa(it.name) === Core.normFa(Core.enToFa(n)));
+    function chipsHtml(l) {
+      const bs = [...brandsFor(l.itemId, l.name).keys()];
+      return bs.length ? `<div class="bchips"><span>ویژندهای قبلی:</span>${bs.map((b) => `<button type="button" class="bchip ${b === l.brand ? 'on' : ''}" data-b="${esc(b)}">${esc(b)}</button>`).join('')}</div>` : '';
+    }
+    // refresh one row in place (no re-render, so the field the user tapped next keeps focus)
+    function syncRow(row, l) {
+      $('[data-k=brand]', row).value = l.brand || '';
+      $('[data-k=price]', row).value = l.price === '' ? '' : fa(l.price, 2);
+      const unit = $('[data-k=unit]', row);
+      if (![...unit.options].some((o) => o.value === l.unit)) unit.add(new Option(l.unit, l.unit));
+      unit.value = l.unit;
+      $('[data-chips]', row).innerHTML = chipsHtml(l);
+      bindChips(row, l);
+      updTotal();
+    }
+    // tapping an earlier brand fills it with its latest price
+    function bindChips(row, l) {
+      $$('.bchip', row).forEach((chip) => (chip.onclick = () => {
+        const known = brandsFor(l.itemId, l.name).get(chip.dataset.b);
+        l.brand = chip.dataset.b;
+        if (known) {
+          if (known.price) l.price = known.price;
+          l.size = known.size || undefined;
+          if (known.unit) l.unit = known.unit;
+        }
+        syncRow(row, l);
+      }));
+    }
     function drawLines() {
       $('#fLines').innerHTML = e.lines.map((l, i) => `<div class="line" data-l="${i}">
         <div class="line-top"><input data-k="name" list="dlItems" value="${esc(l.name)}" placeholder="نام قلم"><button type="button" class="x" data-del>✕</button></div>
         <input data-k="brand" list="dlBrands" value="${esc(l.brand || '')}" placeholder="ویژند (برند) — اختیاری">
+        <div data-chips>${chipsHtml(l)}</div>
         <div class="line-grid line-head"><span>مقدار</span><span>واحد</span><span>قیمت هر واحد</span></div>
         <div class="line-grid">
           <input data-k="qty" inputmode="decimal" value="${l.qty === '' ? '' : fa(l.qty, 3)}" placeholder="مقدار">
@@ -199,7 +246,7 @@ const Ledger = (() => {
           <input data-k="price" inputmode="decimal" value="${l.price === '' ? '' : fa(l.price, 2)}" placeholder="قیمت هر واحد">
         </div><div class="line-sum" data-sum></div></div>`).join('') +
         `<datalist id="dlItems">${items.map(([, it]) => `<option value="${esc(it.name)}">`).join('')}</datalist>
-         <datalist id="dlBrands">${A().allBrands().map((b) => `<option value="${esc(b)}">`).join('')}</datalist>`;
+         <datalist id="dlBrands">${knownBrands().map((b) => `<option value="${esc(b)}">`).join('')}</datalist>`;
       $$('#fLines .line').forEach((row) => {
         const l = e.lines[+row.dataset.l];
         $$('[data-k]', row).forEach((inp) => (inp.onchange = () => {
@@ -212,17 +259,23 @@ const Ledger = (() => {
             l.cat = hit?.[1].cat || 'سایر';
             // prefill from the price list when the item is known
             const o = hit && Core.pickPrice(A().prices[hit[0]]);
-            if (o && l.price === '') { l.brand = l.brand || o.b; l.price = num(o.price); l.unit = 'بسته'; l.size = num(o.size); drawLines(); }
+            if (o && l.price === '') { l.brand = l.brand || o.b; l.price = num(o.price); l.unit = 'بسته'; l.size = num(o.size); }
+            return syncRow(row, l);
           }
-          if (k === 'brand' && l.itemId) {
-            const opt = Core.normPrice(A().prices[l.itemId])?.list.find((x) => x.b === l.brand);
-            if (opt) { l.size = num(opt.size); if (l.price === '') { l.price = num(opt.price); drawLines(); } }
+          if (k === 'brand') {
+            const known = brandsFor(l.itemId, l.name).get(l.brand);
+            if (known) {
+              l.size = known.size || undefined;
+              if (l.price === '') { l.price = known.price; l.unit = known.unit || l.unit; }
+            }
+            return syncRow(row, l);
           }
           if (k === 'qty' || k === 'price') inp.value = l[k] === '' ? '' : fa(l[k], k === 'qty' ? 3 : 2);
           updTotal();
         }));
         Core.bindFaFix($('[data-k=name]', row), () => items.map(([, it]) => it.name));
-        Core.bindFaFix($('[data-k=brand]', row), A().allBrands);
+        Core.bindFaFix($('[data-k=brand]', row), knownBrands);
+        bindChips(row, l);
         $('[data-del]', row).onclick = () => { e.lines.splice(+row.dataset.l, 1); if (!e.lines.length) e.lines.push({ name: '', brand: '', qty: '', unit: 'بسته', price: '' }); drawLines(); };
       });
       updTotal();
@@ -596,6 +649,6 @@ const Ledger = (() => {
     openEntry('invoice', null, { lines, note: R.plan?.name || '' });
   }
 
-  return { render, invoiceFromResult, computeReport, balances, _L: L };
+  return { render, invoiceFromResult, knownBrands, computeReport, balances, _L: L };
 })();
 window.Ledger = Ledger;
